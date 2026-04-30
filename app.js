@@ -217,7 +217,8 @@ function applyFilters(items) {
   });
 }
 
-function parseXML(xmlText, feedName, limit) {
+// parseXML sem limit — o limite é aplicado depois (no modo Todos após shuffle)
+function parseXML(xmlText, feedName) {
   const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
   const rawItems = [...xml.querySelectorAll('item, entry')];
   const items = rawItems.map(item => {
@@ -228,7 +229,17 @@ function parseXML(xmlText, feedName, limit) {
     const pubDate = item.querySelector('pubDate, published, updated')?.textContent || '';
     return { title, link, desc, pubDate, feedName };
   });
-  return applyFilters(items).slice(0, limit);
+  return applyFilters(items);
+}
+
+// Fisher-Yates shuffle
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function renderNewsCard(item) {
@@ -276,7 +287,7 @@ async function loadNews() {
     const feed   = cfg.feeds[cfg.activeFeed];
     const cached = feedCache[feed.url];
     if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
-      const items = parseXML(cached.xml, feed.name, limitOne);
+      const items = parseXML(cached.xml, feed.name).slice(0, limitOne);
       grid.innerHTML = items.length
         ? items.map(renderNewsCard).join('')
         : '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
@@ -285,7 +296,7 @@ async function loadNews() {
     grid.innerHTML = `<div class="news-loading"><div class="loader"></div><br>Carregando ${escHtml(feed.name)}...</div>`;
     try {
       const xml   = await fetchFeed(feed.url);
-      const items = parseXML(xml, feed.name, limitOne);
+      const items = parseXML(xml, feed.name).slice(0, limitOne);
       grid.innerHTML = items.length
         ? items.map(renderNewsCard).join('')
         : '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
@@ -296,42 +307,52 @@ async function loadNews() {
     return;
   }
 
-  // ── Todos: paralelo com placeholders imediatos ──────────────
-  grid.innerHTML = cfg.feeds.map((f, i) => {
-    const cached = feedCache[f.url];
-    if (cached?.xml && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
-      const items = parseXML(cached.xml, f.name, limitAll);
-      const cards = items.length
-        ? items.map(renderNewsCard).join('')
-        : `<div class="news-empty" style="padding:12px 0">Sem resultados para os filtros.</div>`;
-      return `<div class="feed-group" id="feedGroup_${i}"><div class="feed-group-header">${escHtml(f.name)}</div>${cards}</div>`;
-    }
-    return `<div class="feed-group" id="feedGroup_${i}">
-      <div class="feed-group-header">${escHtml(f.name)}</div>
-      <div class="feed-group-loading"><div class="loader" style="width:16px;height:16px;border-width:2px"></div></div>
-    </div>`;
-  }).join('');
+  // ── Todos: coleta todos os feeds em paralelo, shuffle e exibe misturado ──
+  // Pool compartilhado entre feeds já em cache e os que ainda estão carregando
+  const allItemsPool = [];   // itens já disponíveis (do cache)
+  const pendingFeeds = [];   // feeds que ainda precisam ser buscados
 
-  cfg.feeds.forEach((feed, i) => {
+  cfg.feeds.forEach((feed) => {
     const cached = feedCache[feed.url];
-    if (cached?.xml && (Date.now() - cached.fetchedAt) < CACHE_TTL) return;
-    fetchFeed(feed.url)
-      .then(xml => {
-        const items = parseXML(xml, feed.name, limitAll);
-        const el    = document.getElementById(`feedGroup_${i}`);
-        if (!el) return;
-        const cards = items.length
-          ? items.map(renderNewsCard).join('')
-          : `<div class="news-empty" style="padding:12px 0">Sem resultados para os filtros.</div>`;
-        el.innerHTML = `<div class="feed-group-header">${escHtml(feed.name)}</div>${cards}`;
-      })
-      .catch(() => {
-        const el = document.getElementById(`feedGroup_${i}`);
-        if (!el) return;
-        el.innerHTML = `<div class="feed-group-header">${escHtml(feed.name)}</div>
-          <div class="news-empty" style="padding:8px 0">⚠️ Falha ao carregar</div>`;
-      });
+    if (cached?.xml && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
+      allItemsPool.push(...parseXML(cached.xml, feed.name));
+    } else {
+      pendingFeeds.push(feed);
+    }
   });
+
+  // Função que re-renderiza o grid com o pool atual (shuffle + limit)
+  function renderPool() {
+    const mixed = shuffle(allItemsPool).slice(0, limitAll);
+    if (mixed.length === 0 && pendingFeeds.length === 0) {
+      grid.innerHTML = '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
+      return;
+    }
+    // Mantém placeholder de loading se ainda tem feeds pendentes
+    const loadingPlaceholder = pendingFeeds.length > 0
+      ? `<div class="news-loading" style="padding:16px 0"><div class="loader" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div><span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">carregando ${pendingFeeds.length} feed(s)...</span></div>`
+      : '';
+    grid.innerHTML = mixed.map(renderNewsCard).join('') + loadingPlaceholder;
+  }
+
+  // Renderiza imediatamente com o que já está em cache
+  renderPool();
+
+  // Busca os pendentes em paralelo — cada um que chega atualiza o pool e re-renderiza
+  if (pendingFeeds.length > 0) {
+    pendingFeeds.forEach(feed => {
+      fetchFeed(feed.url)
+        .then(xml => {
+          allItemsPool.push(...parseXML(xml, feed.name));
+          pendingFeeds.splice(pendingFeeds.indexOf(feed), 1);
+          renderPool();
+        })
+        .catch(() => {
+          pendingFeeds.splice(pendingFeeds.indexOf(feed), 1);
+          renderPool();
+        });
+    });
+  }
 }
 
 function forceRefresh() { feedCache = {}; loadNews(); }
@@ -368,12 +389,14 @@ function switchTab(tab) {
 
 function openSettings() {
   renderSettingsModal();
-  switchTab(activeTab); // mantém a aba que estava aberta
+  switchTab(activeTab);
   document.getElementById('settingsModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeSettings() {
   document.getElementById('settingsModal').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 function renderSettingsModal() {

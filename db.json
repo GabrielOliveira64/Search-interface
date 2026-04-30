@@ -57,6 +57,41 @@
           "name": "Drive",
           "url": "https://drive.google.com",
           "favicon": "https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png"
+        },
+        {
+          "name": "px",
+          "url": "https://pixabay.com/pt/sound-effects/search/alarme/",
+          "favicon": "https://pixabay.com/favicon.ico"
+        },
+        {
+          "name": "goanime",
+          "url": "https://www.goanime.fun/",
+          "favicon": "https://www.goanime.fun/favicon.ico"
+        },
+        {
+          "name": "pinterest",
+          "url": "https://br.pinterest.com/",
+          "favicon": "https://br.pinterest.com/favicon.ico"
+        },
+        {
+          "name": "Animes",
+          "url": "https://animesonline.cloud/episodio/rezero-kara-hajimeru-isekai-seikatsu-episodio-02",
+          "favicon": "https://animesonline.cloud/favicon.ico"
+        },
+        {
+          "name": "RedeCanais",
+          "url": "https://www14.redecanais.in/serie/battlestar-galactica-2/",
+          "favicon": "https://www14.redecanais.in/favicon.ico"
+        },
+        {
+          "name": "Rezero",
+          "url": "https://doramasonline.org/br/episodio/sweet-home-temporada-1-episodio-3/",
+          "favicon": "https://doramasonline.org/favicon.ico"
+        },
+        {
+          "name": "Aliexpress",
+          "url": "https://pt.aliexpress.com/item/1005007386086113.html?spm=a2g0o.best.0.0.36c722aekknwn8&pdp_npi=6%40dis%21BRL%21R%24212%2C11%21R%2471%2C96%21%21%21%21%21%402101d94417605695849841407e3f76%2112000046482186680%21btfaff%21%21%21%211%210%21&afTraceInfo=1005007386086113__pc__pcBestMore2Love__tzlHQVj__1760569585391&_gl=1*1sg9php*_gcl_aw*R0NMLjE3NTcyODMxNjAuQ2p3S0NBancydlRGQmhBdUVpd0FGYVNjd2hCWWlYWmlMQkJLUWFQcnhOZWhueUloQllNSUR0SldIQ1lKMllfaXZULVNlYkpXWEM3Q1Rob0M1QlVRQXZEX0J3RQ..*_gcl_dc*R0NMLjE3NTcyODMxNjAuQ2p3S0NBancydlRGQmhBdUVpd0FGYVNjd2hCWWlYWmlMQkJLUWFQcnhOZWhueUloQllNSUR0SldIQ1lKMllfaXZULVNlYkpXWEM3Q1Rob0M1QlVRQXZEX0J3RQ..*_gcl_au*Mjc4NDYzMDY2LjE3NTQyODIyMDg.*_ga*ODg1NjcxMTYwLjE3NTQyODIyMDg.*_ga_VED1YSGNC7*czE3NjA1NTkyOTQkbzE1JGcxJHQxNzYwNTY5NTg1JGo1NCRsMCRoMA..&gatewayAdapt=glo2bra",
+          "favicon": "https://pt.aliexpress.com/favicon.ico"
         }
       ]
     },
@@ -139,6 +174,26 @@
           "favicon": "https://replit.com/public/icons/favicon-196.png"
         }
       ]
+    },
+    {
+      "name": "FIlmes",
+      "sites": []
+    },
+    {
+      "name": "Series",
+      "sites": []
+    },
+    {
+      "name": "Animes",
+      "sites": []
+    },
+    {
+      "name": "Musica",
+      "sites": []
+    },
+    {
+      "name": "Programacao",
+      "sites": []
     }
   ],
   "feeds": [
@@ -166,8 +221,13 @@
   "activeEngine": 0,
   "activeCat": 0,
   "activeFeed": -1,
-  "newsFilterScope": "both",
+  "newsFilterScope": "title",
   "newsMaxAll": 5,
-  "newsFiltersNeg": [],
-  "newsFilterScopeNeg": "title"
+  "newsFiltersNeg": [
+    "libertadores",
+    "futebol",
+    "policia",
+    "íntegra"
+  ],
+  "newsFilterScopeNeg": "both"
 }
