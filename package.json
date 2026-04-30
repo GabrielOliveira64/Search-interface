@@ -1,0 +1,62 @@
+{
+  "name": "portal",
+  "version": "1.0.0",
+  "description": "Página inicial personalizada com RSS, atalhos e busca",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:portable": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.portal.app",
+    "productName": "Portal",
+    "copyright": "Copyright © 2025",
+    "asar": true,
+    "files": [
+      "main.js",
+      "preload.js",
+      "panel.html",
+      "index.html",
+      "app.js",
+      "style.css",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "db.json",
+        "to": "db.json",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis",     "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Portal",
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico",
+      "deleteAppDataOnUninstall": false
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}

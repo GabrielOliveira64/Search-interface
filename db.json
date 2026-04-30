@@ -1,0 +1,184 @@
+{
+  "theme": "dark",
+  "newsMaxPerFeed": 5,
+  "newsFilters": [
+    "tecnologia",
+    "IA",
+    "Inteligencia artificial",
+    "games",
+    "programação",
+    "agent",
+    "steam",
+    "jogo",
+    "game",
+    "playstation",
+    "xbox",
+    "epic",
+    "epic games"
+  ],
+  "engines": [
+    {
+      "name": "Google",
+      "url": "https://www.google.com/search?q="
+    },
+    {
+      "name": "DuckDuckGo",
+      "url": "https://duckduckgo.com/?q="
+    },
+    {
+      "name": "YouTube",
+      "url": "https://www.youtube.com/results?search_query="
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com/search?q="
+    },
+    {
+      "name": "Bing",
+      "url": "https://www.bing.com/search?q="
+    }
+  ],
+  "categories": [
+    {
+      "name": "Trabalho",
+      "sites": [
+        {
+          "name": "GitHub",
+          "url": "https://github.com",
+          "favicon": "https://github.com/favicon.ico"
+        },
+        {
+          "name": "Stack Overflow",
+          "url": "https://stackoverflow.com",
+          "favicon": "https://stackoverflow.com/favicon.ico"
+        },
+        {
+          "name": "Notion",
+          "url": "https://notion.so",
+          "favicon": "https://www.notion.so/front-static/favicon.ico"
+        },
+        {
+          "name": "Figma",
+          "url": "https://figma.com",
+          "favicon": "https://static.figma.com/app/icon/1/favicon.png"
+        },
+        {
+          "name": "Gmail",
+          "url": "https://mail.google.com",
+          "favicon": "https://mail.google.com/favicon.ico"
+        },
+        {
+          "name": "Drive",
+          "url": "https://drive.google.com",
+          "favicon": "https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png"
+        }
+      ]
+    },
+    {
+      "name": "Entretenimento",
+      "sites": [
+        {
+          "name": "YouTube",
+          "url": "https://youtube.com",
+          "favicon": "https://youtube.com/favicon.ico"
+        },
+        {
+          "name": "Netflix",
+          "url": "https://netflix.com",
+          "favicon": "https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.ico"
+        },
+        {
+          "name": "Spotify",
+          "url": "https://open.spotify.com",
+          "favicon": "https://open.spotify.com/favicon.ico"
+        },
+        {
+          "name": "Twitch",
+          "url": "https://twitch.tv",
+          "favicon": "https://static.twitchsvc.net/assets/uploads/glitch_474x356.png"
+        }
+      ]
+    },
+    {
+      "name": "Social",
+      "sites": [
+        {
+          "name": "Twitter/X",
+          "url": "https://x.com",
+          "favicon": "https://abs.twimg.com/favicons/twitter.3.ico"
+        },
+        {
+          "name": "Reddit",
+          "url": "https://reddit.com",
+          "favicon": "https://www.reddit.com/favicon.ico"
+        },
+        {
+          "name": "Instagram",
+          "url": "https://instagram.com",
+          "favicon": "https://www.instagram.com/favicon.ico"
+        },
+        {
+          "name": "LinkedIn",
+          "url": "https://linkedin.com",
+          "favicon": "https://www.linkedin.com/favicon.ico"
+        }
+      ]
+    },
+    {
+      "name": "Dev",
+      "sites": [
+        {
+          "name": "MDN",
+          "url": "https://developer.mozilla.org",
+          "favicon": "https://developer.mozilla.org/favicon.ico"
+        },
+        {
+          "name": "npm",
+          "url": "https://npmjs.com",
+          "favicon": "https://static-production.npmjs.com/58a19602036db1daee0d7863c94673a4.png"
+        },
+        {
+          "name": "CodePen",
+          "url": "https://codepen.io",
+          "favicon": "https://cpwebassets.codepen.io/assets/favicon/favicon-touch-de50acbf5d634ec6791894eba4ba9cf490f709b3d742597c6fc4b734eba37f8.png"
+        },
+        {
+          "name": "Vercel",
+          "url": "https://vercel.com",
+          "favicon": "https://assets.vercel.com/image/upload/front/favicon/vercel/32x32.png"
+        },
+        {
+          "name": "Replit",
+          "url": "https://replit.com",
+          "favicon": "https://replit.com/public/icons/favicon-196.png"
+        }
+      ]
+    }
+  ],
+  "feeds": [
+    {
+      "name": "Olhar digital",
+      "url": "https://olhardigital.com.br/feed/"
+    },
+    {
+      "name": "Adrenaline",
+      "url": "https://www.adrenaline.com.br/feed/"
+    },
+    {
+      "name": "Tecnoblog",
+      "url": "https://tecnoblog.net/feed/"
+    },
+    {
+      "name": "Tecmundo",
+      "url": "https://www.tecmundo.com.br/tags/rss"
+    },
+    {
+      "name": "AkitaOnRails",
+      "url": "https://akitaonrails.com/index.xml"
+    }
+  ],
+  "activeEngine": 0,
+  "activeCat": 2,
+  "activeFeed": 0,
+  "newsFilterScope": "both"
+}

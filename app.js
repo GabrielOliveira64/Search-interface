@@ -1,80 +1,102 @@
 // ═══════════════════════════════════════
-// DEFAULT CONFIG
+// CONFIG — carregada do servidor (db.json)
 // ═══════════════════════════════════════
-const DEFAULT_CONFIG = {
-  theme: 'dark',
-  engines: [
-    { name: 'Google', url: 'https://www.google.com/search?q=' },
-    { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
-    { name: 'YouTube', url: 'https://www.youtube.com/results?search_query=' },
-    { name: 'GitHub', url: 'https://github.com/search?q=' },
-    { name: 'Bing', url: 'https://www.bing.com/search?q=' },
-  ],
-  categories: [
-    {
-      name: 'Trabalho',
-      sites: [
-        { name: 'GitHub', url: 'https://github.com', favicon: 'https://github.com/favicon.ico' },
-        { name: 'Stack Overflow', url: 'https://stackoverflow.com', favicon: 'https://stackoverflow.com/favicon.ico' },
-        { name: 'Notion', url: 'https://notion.so', favicon: 'https://www.notion.so/front-static/favicon.ico' },
-        { name: 'Figma', url: 'https://figma.com', favicon: 'https://static.figma.com/app/icon/1/favicon.png' },
-        { name: 'Gmail', url: 'https://mail.google.com', favicon: 'https://mail.google.com/favicon.ico' },
-        { name: 'Drive', url: 'https://drive.google.com', favicon: 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png' },
-      ]
-    },
-    {
-      name: 'Entretenimento',
-      sites: [
-        { name: 'YouTube', url: 'https://youtube.com', favicon: 'https://youtube.com/favicon.ico' },
-        { name: 'Netflix', url: 'https://netflix.com', favicon: 'https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.ico' },
-        { name: 'Spotify', url: 'https://open.spotify.com', favicon: 'https://open.spotify.com/favicon.ico' },
-        { name: 'Twitch', url: 'https://twitch.tv', favicon: 'https://static.twitchsvc.net/assets/uploads/glitch_474x356.png' },
-      ]
-    },
-    {
-      name: 'Social',
-      sites: [
-        { name: 'Twitter/X', url: 'https://x.com', favicon: 'https://abs.twimg.com/favicons/twitter.3.ico' },
-        { name: 'Reddit', url: 'https://reddit.com', favicon: 'https://www.reddit.com/favicon.ico' },
-        { name: 'Instagram', url: 'https://instagram.com', favicon: 'https://www.instagram.com/favicon.ico' },
-        { name: 'LinkedIn', url: 'https://linkedin.com', favicon: 'https://www.linkedin.com/favicon.ico' },
-      ]
-    },
-    {
-      name: 'Dev',
-      sites: [
-        { name: 'MDN', url: 'https://developer.mozilla.org', favicon: 'https://developer.mozilla.org/favicon.ico' },
-        { name: 'npm', url: 'https://npmjs.com', favicon: 'https://static-production.npmjs.com/58a19602036db1daee0d7863c94673a4.png' },
-        { name: 'CodePen', url: 'https://codepen.io', favicon: 'https://cpwebassets.codepen.io/assets/favicon/favicon-touch-de50acbf5d634ec6791894eba4ba9cf490f709b3d742597c6fc4b734eba37f8.png' },
-        { name: 'Vercel', url: 'https://vercel.com', favicon: 'https://assets.vercel.com/image/upload/front/favicon/vercel/32x32.png' },
-        { name: 'Replit', url: 'https://replit.com', favicon: 'https://replit.com/public/icons/favicon-196.png' },
-      ]
-    }
-  ],
-  feeds: [
-    { name: 'G1', url: 'https://g1.globo.com/rss/g1/' },
-    { name: 'Tecnoblog', url: 'https://tecnoblog.net/feed/' },
-    { name: 'BBC Brasil', url: 'https://www.bbc.com/portuguese/index.xml' },
-  ],
-  activeEngine: 0,
-  activeCat: 0,
-  activeFeed: 0
-};
+let cfg = null;
 
-// ═══════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════
-let cfg = loadConfig();
-
-function loadConfig() {
+async function loadConfig() {
   try {
-    const saved = localStorage.getItem('portalConfig');
-    return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-  } catch { return JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+    const res = await fetch('/api/config');
+    cfg = await res.json();
+    // garante campos novos em configs antigas
+    if (cfg.newsMaxPerFeed === undefined) cfg.newsMaxPerFeed = 5;
+    if (!cfg.newsFilters) cfg.newsFilters = [];
+    if (!cfg.newsFilterScope) cfg.newsFilterScope = 'title';
+    if (cfg.activeFeed === undefined) cfg.activeFeed = -1;
+  } catch {
+    showToast('❌ Não foi possível conectar ao servidor. Rode: node server.js');
+  }
 }
 
-function saveConfig() {
-  localStorage.setItem('portalConfig', JSON.stringify(cfg));
+async function saveConfig() {
+  try {
+    await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg)
+    });
+  } catch {
+    showToast('❌ Erro ao salvar configurações.');
+  }
+}
+
+// ═══════════════════════════════════════
+// EXPORT / IMPORT db.json
+// ═══════════════════════════════════════
+function exportDB() {
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'db.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✅ db.json exportado!');
+}
+
+function importDB() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!imported.feeds || !imported.categories || !imported.engines)
+          throw new Error('Arquivo inválido');
+        cfg = imported;
+        if (cfg.newsMaxPerFeed === undefined) cfg.newsMaxPerFeed = 5;
+        if (!cfg.newsFilters) cfg.newsFilters = [];
+        if (!cfg.newsFilterScope) cfg.newsFilterScope = 'title';
+        if (cfg.activeFeed === undefined) cfg.activeFeed = -1;
+        await saveConfig();
+        renderSettingsModal();
+        renderEngines();
+        renderCategories();
+        renderNewsTabs();
+        // Invalida cache e recarrega
+        feedCache = {};
+        loadNews();
+        showToast('✅ db.json importado com sucesso!');
+      } catch {
+        showToast('❌ Arquivo inválido ou corrompido.');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = `
+      position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+      background:var(--surface);border:1px solid var(--border);
+      color:var(--text);padding:10px 20px;border-radius:10px;
+      font-family:'DM Mono',monospace;font-size:13px;
+      z-index:9999;opacity:0;transition:opacity 0.25s;pointer-events:none;
+      white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2800);
 }
 
 // ═══════════════════════════════════════
@@ -90,7 +112,7 @@ function setTheme(t) {
 // ═══════════════════════════════════════
 // CLOCK
 // ═══════════════════════════════════════
-const DAYS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const DAYS   = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MONTHS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 
 function updateClock() {
@@ -107,9 +129,8 @@ function updateClock() {
 // SEARCH ENGINES
 // ═══════════════════════════════════════
 function renderEngines() {
-  const el = document.getElementById('engineSelector');
-  el.innerHTML = cfg.engines.map((e, i) =>
-    `<button class="engine-btn ${i === cfg.activeEngine ? 'active' : ''}" onclick="selectEngine(${i})">${e.name}</button>`
+  document.getElementById('engineSelector').innerHTML = cfg.engines.map((e, i) =>
+    `<button class="engine-btn ${i === cfg.activeEngine ? 'active' : ''}" onclick="selectEngine(${i})">${escHtml(e.name)}</button>`
   ).join('');
 }
 
@@ -121,8 +142,7 @@ function selectEngine(i) {
 function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
-  const engine = cfg.engines[cfg.activeEngine];
-  window.open(engine.url + encodeURIComponent(q), '_blank');
+  window.open(cfg.engines[cfg.activeEngine].url + encodeURIComponent(q), '_blank');
 }
 
 // ═══════════════════════════════════════
@@ -133,7 +153,7 @@ function renderCategories() {
   const grid = document.getElementById('sitesGrid');
 
   tabs.innerHTML = cfg.categories.map((c, i) =>
-    `<button class="cat-tab ${i === cfg.activeCat ? 'active' : ''}" onclick="selectCat(${i})">${c.name}</button>`
+    `<button class="cat-tab ${i === cfg.activeCat ? 'active' : ''}" onclick="selectCat(${i})">${escHtml(c.name)}</button>`
   ).join('');
 
   const cat = cfg.categories[cfg.activeCat] || cfg.categories[0];
@@ -141,8 +161,10 @@ function renderCategories() {
 
   grid.innerHTML = cat.sites.map(s => `
     <a class="site-card" href="${s.url}" target="_blank">
-      <img class="site-favicon" src="${s.favicon}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2224%22 font-size=%2224%22>🌐</text></svg>'" alt="${s.name}">
-      <div class="site-name">${s.name}</div>
+      <img class="site-favicon" src="${s.favicon}"
+        onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2224%22 font-size=%2224%22>🌐</text></svg>'"
+        alt="${escHtml(s.name)}">
+      <div class="site-name">${escHtml(s.name)}</div>
     </a>
   `).join('');
 }
@@ -153,37 +175,90 @@ function selectCat(i) {
 }
 
 // ═══════════════════════════════════════
-// NEWS - RSS via proxy CORS
+// NEWS — cache no browser + /api/rss
 // ═══════════════════════════════════════
-const PROXIES = [
-  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://thingproxy.freeboard.io/fetch/${url}`,
-];
 
-async function fetchWithFallback(url) {
-  for (let i = 0; i < PROXIES.length; i++) {
-    try {
-      const proxyUrl = PROXIES[i](url);
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
-      if (!res.ok) continue;
-      const text = await res.text();
-      try {
-        const json = JSON.parse(text);
-        if (json.contents) return json.contents;
-      } catch {}
-      if (text.includes('<rss') || text.includes('<feed') || text.includes('<item')) return text;
-    } catch {}
-  }
-  throw new Error('Todos os proxies falharam');
+// Cache local no browser: { [url]: { items: [], fetchedAt: number } }
+let feedCache = {};
+const CACHE_TTL = 5 * 60 * 1000; // 5 min
+
+async function fetchFeed(feedUrl) {
+  const now = Date.now();
+  const cached = feedCache[feedUrl];
+  if (cached && (now - cached.fetchedAt) < CACHE_TTL) return cached.xml;
+
+  const res = await fetch(`/api/rss?url=${encodeURIComponent(feedUrl)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const xml = await res.text();
+  feedCache[feedUrl] = { xml, fetchedAt: now };
+  return xml;
+}
+
+// Warmup: busca todos os feeds em paralelo assim que a página abre.
+// O servidor já fez o warmup dele, então a resposta vem do cache — instantâneo.
+function warmupAllFeeds() {
+  if (!cfg.feeds?.length) return;
+  cfg.feeds.forEach(f => {
+    fetchFeed(f.url).catch(() => {}); // silencioso, só preenche cache
+  });
+}
+
+// Aplica filtros de conteúdo com escopo configurável
+function applyFilters(items) {
+  const filters = (cfg.newsFilters || []).map(f => f.toLowerCase().trim()).filter(Boolean);
+  if (!filters.length) return items;
+
+  const scope = cfg.newsFilterScope || 'title'; // 'title' | 'description' | 'both'
+
+  return items.filter(item => {
+    let haystack = '';
+    if (scope === 'title' || scope === 'both') haystack += ' ' + item.title.toLowerCase();
+    if (scope === 'description' || scope === 'both') haystack += ' ' + item.desc.toLowerCase();
+    return filters.some(f => haystack.includes(f));
+  });
+}
+
+function parseXML(xmlText, feedName, limit) {
+  const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
+  const rawItems = [...xml.querySelectorAll('item, entry')];
+
+  const items = rawItems.map(item => {
+    const title   = item.querySelector('title')?.textContent?.trim() || '';
+    const linkEl  = item.querySelector('link');
+    const link    = linkEl?.getAttribute('href') || linkEl?.textContent?.trim() || '#';
+    const desc    = stripHtml(item.querySelector('description, summary, content')?.textContent || '');
+    const pubDate = item.querySelector('pubDate, published, updated')?.textContent || '';
+    return { title, link, desc, pubDate, feedName };
+  });
+
+  return applyFilters(items).slice(0, limit);
+}
+
+function renderNewsCard(item) {
+  const dateStr = item.pubDate ? formatDate(new Date(item.pubDate)) : '';
+  return `
+    <a class="news-card" href="${item.link}" target="_blank" rel="noopener">
+      <div>
+        <div class="news-title">${escHtml(item.title || 'Sem título')}</div>
+        ${item.desc ? `<div class="news-desc">${escHtml(item.desc)}</div>` : ''}
+        <div class="news-meta">
+          <span class="news-source-badge">${escHtml(item.feedName)}</span>
+          ${dateStr ? `<span class="news-date">${dateStr}</span>` : ''}
+        </div>
+      </div>
+      <span class="news-arrow">→</span>
+    </a>
+  `;
 }
 
 function renderNewsTabs() {
   const el = document.getElementById('newsSourceTabs');
-  el.innerHTML = cfg.feeds.map((f, i) =>
-    `<button class="news-tab ${i === cfg.activeFeed ? 'active' : ''}" onclick="selectFeed(${i})">${f.name}</button>`
+  const allActive = cfg.activeFeed === -1;
+  let html = `<button class="news-tab ${allActive ? 'active' : ''}" onclick="selectFeed(-1)">Todos</button>`;
+  html += cfg.feeds.map((f, i) =>
+    `<button class="news-tab ${i === cfg.activeFeed ? 'active' : ''}" onclick="selectFeed(${i})">${escHtml(f.name)}</button>`
   ).join('');
+  el.innerHTML = html;
 }
 
 function selectFeed(i) {
@@ -193,76 +268,119 @@ function selectFeed(i) {
 }
 
 async function loadNews() {
-  const grid = document.getElementById('newsGrid');
-  const btn = document.getElementById('refreshBtn');
+  const grid  = document.getElementById('newsGrid');
+  const btn   = document.getElementById('refreshBtn');
+  const limit = cfg.newsMaxPerFeed || 5;
 
   if (!cfg.feeds.length) {
     grid.innerHTML = '<div class="news-empty">Nenhum feed configurado.</div>';
     return;
   }
 
-  grid.innerHTML = '<div class="news-loading"><div class="loader"></div><br>Carregando...</div>';
   btn.classList.add('spinning');
   setTimeout(() => btn.classList.remove('spinning'), 700);
 
-  const feed = cfg.feeds[cfg.activeFeed] || cfg.feeds[0];
+  // ── Feed único ──────────────────────────────────────────────
+  if (cfg.activeFeed >= 0) {
+    const feed = cfg.feeds[cfg.activeFeed];
 
-  try {
-    const xmlText = await fetchWithFallback(feed.url);
-    const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
-    const items = [...xml.querySelectorAll('item, entry')].slice(0, 12);
+    // Se já tem no cache, renderiza imediatamente sem loader
+    const cached = feedCache[feed.url];
+    const now    = Date.now();
+    if (cached && (now - cached.fetchedAt) < CACHE_TTL) {
+      const items = parseXML(cached.xml, feed.name, limit);
+      grid.innerHTML = items.length
+        ? items.map(renderNewsCard).join('')
+        : '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
+      return;
+    }
 
-    if (!items.length) throw new Error('Sem itens');
-
-    grid.innerHTML = items.map(item => {
-      const title = item.querySelector('title')?.textContent || 'Sem título';
-      const linkEl = item.querySelector('link');
-      const link = linkEl?.getAttribute('href') || linkEl?.textContent || '#';
-      const desc = stripHtml(item.querySelector('description, summary, content')?.textContent || '');
-      const pubDate = item.querySelector('pubDate, published, updated')?.textContent || '';
-      const dateStr = pubDate ? formatDate(new Date(pubDate)) : '';
-
-      return `
-        <a class="news-card" href="${link}" target="_blank" rel="noopener">
-          <div>
-            <div class="news-title">${escHtml(title)}</div>
-            ${desc ? `<div class="news-desc">${escHtml(desc)}</div>` : ''}
-            <div class="news-meta">
-              <span class="news-source-badge">${feed.name}</span>
-              ${dateStr ? `<span class="news-date">${dateStr}</span>` : ''}
-            </div>
-          </div>
-          <span class="news-arrow">→</span>
-        </a>
-      `;
-    }).join('');
-
-  } catch (e) {
-    grid.innerHTML = `<div class="news-empty">
-      ⚠️ Não foi possível carregar o feed.<br><br>
-      <small style="line-height:1.8">
-        Possíveis causas:<br>
-        • O site não tem RSS ou a URL está errada<br>
-        • Todos os proxies estão instáveis agora<br>
-        • Tente novamente em alguns segundos (↺)
-      </small>
-    </div>`;
+    grid.innerHTML = `<div class="news-loading"><div class="loader"></div><br>Carregando ${escHtml(feed.name)}...</div>`;
+    try {
+      const xml   = await fetchFeed(feed.url);
+      const items = parseXML(xml, feed.name, limit);
+      grid.innerHTML = items.length
+        ? items.map(renderNewsCard).join('')
+        : '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
+    } catch {
+      grid.innerHTML = `<div class="news-empty">
+        ⚠️ Não foi possível carregar o feed.<br><br>
+        <small style="line-height:1.8">
+          • Verifique se a URL do RSS está correta<br>
+          • Tente novamente em alguns segundos (↺)
+        </small>
+      </div>`;
+    }
+    return;
   }
+
+  // ── Todos: carregamento paralelo com atualização progressiva ──
+  grid.innerHTML = cfg.feeds.map((f, i) => {
+    // Se já está em cache, mostra imediatamente sem placeholder
+    const cached = feedCache[f.url];
+    const now    = Date.now();
+    if (cached?.xml && (now - cached.fetchedAt) < CACHE_TTL) {
+      const items = parseXML(cached.xml, f.name, limit);
+      const cards = items.length
+        ? items.map(renderNewsCard).join('')
+        : `<div class="news-empty" style="padding:12px 0">Sem resultados para os filtros.</div>`;
+      return `<div class="feed-group" id="feedGroup_${i}">
+        <div class="feed-group-header">${escHtml(f.name)}</div>${cards}</div>`;
+    }
+    // Ainda não tem cache — mostra placeholder
+    return `<div class="feed-group" id="feedGroup_${i}">
+      <div class="feed-group-header">${escHtml(f.name)}</div>
+      <div class="feed-group-loading"><div class="loader" style="width:16px;height:16px;border-width:2px"></div></div>
+    </div>`;
+  }).join('');
+
+  // Busca os que ainda não estão em cache em paralelo
+  cfg.feeds.forEach((feed, i) => {
+    const cached = feedCache[feed.url];
+    const now    = Date.now();
+    if (cached?.xml && (now - cached.fetchedAt) < CACHE_TTL) return; // já renderizado acima
+
+    fetchFeed(feed.url)
+      .then(xml => {
+        const items = parseXML(xml, feed.name, limit);
+        const el    = document.getElementById(`feedGroup_${i}`);
+        if (!el) return;
+        const cards = items.length
+          ? items.map(renderNewsCard).join('')
+          : `<div class="news-empty" style="padding:12px 0">Sem resultados para os filtros.</div>`;
+        el.innerHTML = `<div class="feed-group-header">${escHtml(feed.name)}</div>${cards}`;
+      })
+      .catch(() => {
+        const el = document.getElementById(`feedGroup_${i}`);
+        if (!el) return;
+        el.innerHTML = `<div class="feed-group-header">${escHtml(feed.name)}</div>
+          <div class="news-empty" style="padding:8px 0">⚠️ Falha ao carregar</div>`;
+      });
+  });
 }
 
+// ── forçar refresh ignorando cache ──
+function forceRefresh() {
+  feedCache = {};
+  loadNews();
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
 function stripHtml(html) {
   return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
 }
 
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function formatDate(d) {
   if (isNaN(d)) return '';
   const diff = Date.now() - d;
-  if (diff < 3600000) return `${Math.floor(diff/60000)}min atrás`;
-  if (diff < 86400000) return `${Math.floor(diff/3600000)}h atrás`;
+  if (diff < 3600000)  return `${Math.floor(diff / 60000)}min atrás`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h atrás`;
   return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
 }
 
@@ -281,30 +399,39 @@ function closeSettings() {
 function renderSettingsModal() {
   setTheme(cfg.theme);
 
-  const etl = document.getElementById('engineTagsList');
-  etl.innerHTML = cfg.engines.map((e, i) =>
-    `<span class="settings-tag">${e.name}<button class="tag-remove" onclick="removeEngine(${i})">✕</button></span>`
+  document.getElementById('engineTagsList').innerHTML = cfg.engines.map((e, i) =>
+    `<span class="settings-tag">${escHtml(e.name)}<button class="tag-remove" onclick="removeEngine(${i})">✕</button></span>`
   ).join('');
 
-  const ftl = document.getElementById('feedTagsList');
-  ftl.innerHTML = cfg.feeds.map((f, i) =>
-    `<span class="settings-tag">${f.name}<button class="tag-remove" onclick="removeFeed(${i})">✕</button></span>`
+  document.getElementById('feedTagsList').innerHTML = cfg.feeds.map((f, i) =>
+    `<span class="settings-tag">${escHtml(f.name)}<button class="tag-remove" onclick="removeFeed(${i})">✕</button></span>`
   ).join('');
+
+  document.getElementById('filterTagsList').innerHTML = (cfg.newsFilters || []).map((f, i) =>
+    `<span class="settings-tag">${escHtml(f)}<button class="tag-remove" onclick="removeFilter(${i})">✕</button></span>`
+  ).join('');
+
+  document.getElementById('newsMaxInput').value    = cfg.newsMaxPerFeed || 5;
+
+  // Escopo do filtro
+  const scope = cfg.newsFilterScope || 'title';
+  document.querySelectorAll('.scope-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.scope === scope);
+  });
 
   renderCatEditor();
 }
 
 function renderCatEditor() {
-  const el = document.getElementById('catEditor');
-  el.innerHTML = cfg.categories.map((cat, ci) => `
+  document.getElementById('catEditor').innerHTML = cfg.categories.map((cat, ci) => `
     <div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span style="font-weight:700;font-size:13px">${cat.name}</span>
+        <span style="font-weight:700;font-size:13px">${escHtml(cat.name)}</span>
         <button class="tag-remove" onclick="removeCat(${ci})">✕ remover categoria</button>
       </div>
       <div class="tags-list">
         ${cat.sites.map((s, si) =>
-          `<span class="settings-tag">${s.name}<button class="tag-remove" onclick="removeSite(${ci},${si})">✕</button></span>`
+          `<span class="settings-tag">${escHtml(s.name)}<button class="tag-remove" onclick="removeSite(${ci},${si})">✕</button></span>`
         ).join('')}
       </div>
       <div class="add-input-row">
@@ -316,38 +443,39 @@ function renderCatEditor() {
   `).join('');
 }
 
+// ── engines ──
 function addEngine() {
   const name = document.getElementById('newEngineName').value.trim();
-  const url = document.getElementById('newEngineUrl').value.trim();
+  const url  = document.getElementById('newEngineUrl').value.trim();
   if (!name || !url) return;
   cfg.engines.push({ name, url });
   document.getElementById('newEngineName').value = '';
-  document.getElementById('newEngineUrl').value = '';
+  document.getElementById('newEngineUrl').value  = '';
   renderSettingsModal();
 }
-
 function removeEngine(i) {
   cfg.engines.splice(i, 1);
   if (cfg.activeEngine >= cfg.engines.length) cfg.activeEngine = 0;
   renderSettingsModal();
 }
 
+// ── feeds ──
 function addFeed() {
   const name = document.getElementById('newFeedName').value.trim();
-  const url = document.getElementById('newFeedUrl').value.trim();
+  const url  = document.getElementById('newFeedUrl').value.trim();
   if (!name || !url) return;
   cfg.feeds.push({ name, url });
   document.getElementById('newFeedName').value = '';
-  document.getElementById('newFeedUrl').value = '';
+  document.getElementById('newFeedUrl').value  = '';
   renderSettingsModal();
 }
-
 function removeFeed(i) {
   cfg.feeds.splice(i, 1);
-  if (cfg.activeFeed >= cfg.feeds.length) cfg.activeFeed = 0;
+  if (cfg.activeFeed >= cfg.feeds.length) cfg.activeFeed = -1;
   renderSettingsModal();
 }
 
+// ── categorias ──
 function addCategory() {
   const name = document.getElementById('newCatName').value.trim();
   if (!name) return;
@@ -355,42 +483,63 @@ function addCategory() {
   document.getElementById('newCatName').value = '';
   renderCatEditor();
 }
-
 function removeCat(i) {
   cfg.categories.splice(i, 1);
   if (cfg.activeCat >= cfg.categories.length) cfg.activeCat = 0;
   renderCatEditor();
 }
-
 function addSite(ci) {
   const name = document.getElementById(`newSiteName_${ci}`).value.trim();
-  const url = document.getElementById(`newSiteUrl_${ci}`).value.trim();
+  const url  = document.getElementById(`newSiteUrl_${ci}`).value.trim();
   if (!name || !url) return;
   const cleanUrl = url.startsWith('http') ? url : 'https://' + url;
   const host = new URL(cleanUrl).hostname;
-  cfg.categories[ci].sites.push({
-    name,
-    url: cleanUrl,
-    favicon: `https://${host}/favicon.ico`
-  });
+  cfg.categories[ci].sites.push({ name, url: cleanUrl, favicon: `https://${host}/favicon.ico` });
   renderCatEditor();
 }
-
 function removeSite(ci, si) {
   cfg.categories[ci].sites.splice(si, 1);
   renderCatEditor();
 }
 
-function saveSettings() {
-  saveConfig();
+// ── filtros ──
+function addFilter() {
+  const val = document.getElementById('newFilterInput').value.trim();
+  if (!val) return;
+  if (!cfg.newsFilters) cfg.newsFilters = [];
+  if (!cfg.newsFilters.includes(val)) cfg.newsFilters.push(val);
+  document.getElementById('newFilterInput').value = '';
+  renderSettingsModal();
+}
+function removeFilter(i) {
+  cfg.newsFilters.splice(i, 1);
+  renderSettingsModal();
+}
+function setFilterScope(scope) {
+  cfg.newsFilterScope = scope;
+  document.querySelectorAll('.scope-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.scope === scope);
+  });
+}
+
+// ── máximo por feed ──
+function updateMaxPerFeed() {
+  const val = parseInt(document.getElementById('newsMaxInput').value);
+  if (!isNaN(val) && val > 0) cfg.newsMaxPerFeed = val;
+}
+
+async function saveSettings() {
+  updateMaxPerFeed();
+  await saveConfig();
   closeSettings();
   renderEngines();
   renderCategories();
   renderNewsTabs();
+  feedCache = {};
   loadNews();
+  showToast('✅ Configurações salvas!');
 }
 
-// Fechar modal clicando fora
 document.getElementById('settingsModal').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
 });
@@ -398,13 +547,21 @@ document.getElementById('settingsModal').addEventListener('click', function(e) {
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
-function init() {
+async function init() {
+  await loadConfig();
+  if (!cfg) return; // servidor offline
+
   setTheme(cfg.theme);
   updateClock();
   setInterval(updateClock, 1000);
   renderEngines();
   renderCategories();
   renderNewsTabs();
+
+  // Warmup no browser: preenche o cache local a partir do cache do servidor
+  warmupAllFeeds();
+
+  // Renderiza notícias (já virão do cache do servidor, sem delay visível)
   loadNews();
 }
 

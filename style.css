@@ -610,3 +610,72 @@ body::before {
   background: var(--border);
   margin: 32px 0;
 }
+
+/* SETTINGS HINT */
+.settings-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  line-height: 1.6;
+  font-family: 'DM Mono', monospace;
+}
+.settings-hint strong, .settings-hint code {
+  color: var(--accent);
+}
+
+/* FEED GROUP (modo Todos) */
+.feed-group {
+  margin-bottom: 8px;
+}
+
+.feed-group-header {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.feed-group-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+
+/* SCOPE SELECTOR (filtro de conteúdo) */
+.scope-selector {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.scope-opt {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-align: center;
+  transition: all 0.2s;
+}
+.scope-opt.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(124,107,255,0.08);
+}
+.scope-opt:hover:not(.active) {
+  border-color: var(--muted);
+  color: var(--text);
+}

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home — Painel</title>
+<style>
+  :root {
+    --bg:      #0a0a0f;
+    --surface: #111118;
+    --surface2:#1a1a24;
+    --border:  rgba(255,255,255,0.07);
+    --accent:  #7c6bff;
+    --accent2: #ff6b9d;
+    --green:   #4ade80;
+    --red:     #f87171;
+    --text:    #e8e8f0;
+    --muted:   #5a5a72;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Titlebar ── */
+  .titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    -webkit-app-region: drag;
+    flex-shrink: 0;
+  }
+  .titlebar-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }  .titlebar-btns {
+    display: flex;
+    gap: 6px;
+    -webkit-app-region: no-drag;
+  }
+  .tb-btn {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .tb-btn:hover { background: var(--surface2); color: var(--text); }
+  .tb-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Conteúdo ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── Status card ── */
+  .status-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .dot.on {
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 6px var(--green); }
+    50%       { box-shadow: 0 0 14px var(--green); }
+  }
+
+  .status-text { flex: 1; }
+  .status-label {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .status-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'Consolas', monospace;
+  }
+
+  .url-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    margin-top: 12px;
+  }
+  .url-text {
+    flex: 1;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: text;
+  }
+  .url-copy {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 15px;
+    line-height: 1;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+  .url-copy:hover { color: var(--accent); }
+
+  .status-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  /* URL read-only */
+  .url-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+  }
+  .url-text {
+    flex: 1;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .url-copy {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 15px;
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+  .url-copy:hover { color: var(--accent); }
+  .meta-item {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .meta-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    color: var(--accent);
+  }
+
+  /* ── Botão principal ── */
+  .main-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .main-btn.start {
+    background: var(--green);
+    color: #0a0a0f;
+  }
+  .main-btn.start:hover { opacity: 0.88; }
+  .main-btn.stop {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+  }
+  .main-btn.stop:hover { background: rgba(248,113,113,0.08); }
+  .main-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Seção ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 14px;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* ── Porta ── */
+  .port-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .port-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .port-input:focus { border-color: var(--accent); }
+  .port-btn {
+    padding: 10px 18px;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .port-btn:hover { opacity: 0.85; }
+  .port-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* ── Toggle autostart ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .toggle-label { font-size: 14px; }
+  .toggle-sub   { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .toggle {
+    position: relative;
+    width: 44px; height: 24px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 2px; top: 2px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: 0.2s;
+  }
+  .toggle input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(20px); background: #fff; }
+
+  /* ── Ações rápidas ── */
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .action-btn {
+    padding: 12px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Log ── */
+  .log-box {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px;
+    height: 120px;
+    overflow-y: auto;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .log-line { color: var(--muted); }
+  .log-line.ok  { color: var(--green); }
+  .log-line.err { color: var(--red); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-family: 'Consolas', monospace;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 99;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- TITLEBAR -->
+<div class="titlebar">
+  <div class="titlebar-title">⬡ Home</div>
+  <div class="titlebar-btns">
+    <button class="tb-btn" onclick="window.portal.minimizePanel()" title="Minimizar para bandeja">—</button>
+    <button class="tb-btn danger" onclick="window.portal.closeApp()" title="Encerrar app">✕</button>
+  </div>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="content">
+
+  <!-- STATUS -->
+  <div class="status-card">
+    <div class="status-indicator">
+      <div class="dot" id="dot"></div>
+      <div class="status-text">
+        <div class="status-label" id="statusLabel">Verificando...</div>
+      </div>
+    </div>
+
+    <!-- URL read-only com botão copiar -->
+    <div class="url-row">
+      <span class="url-text" id="urlText">—</span>
+      <button class="url-copy" onclick="copyUrl()" title="Copiar URL">⎘</button>
+    </div>
+    <div class="status-meta">
+      <div class="meta-item">
+        <div class="meta-label">Uptime</div>
+        <div class="meta-value" id="uptime">—</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Cache RSS</div>
+        <div class="meta-value" id="cacheInfo">—</div>
+      </div>
+    </div>
+
+    <button class="main-btn" id="mainBtn" onclick="toggleServer()">...</button>
+  </div>
+
+  <!-- PORTA -->
+  <div class="section">
+    <div class="section-title">Porta do servidor</div>
+    <div class="port-row">
+      <input class="port-input" id="portInput" type="number" min="1024" max="65535" value="3000">
+      <button class="port-btn" onclick="applyPort()">Aplicar</button>
+    </div>
+    <div class="port-hint" id="portHint">Alterar a porta reinicia o servidor automaticamente.</div>
+  </div>
+
+  <!-- AUTOSTART -->
+  <div class="section">
+    <div class="section-title">Iniciar com Windows</div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Iniciar automaticamente</div>
+        <div class="toggle-sub">Registra no Agendador de Tarefas do Windows</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="autostartToggle" onchange="toggleAutostart(this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- AÇÕES RÁPIDAS -->
+  <div class="section">
+    <div class="section-title">Ações rápidas</div>
+    <div class="action-grid">
+      <button class="action-btn" onclick="window.portal.openPortal()">🌐 Abrir Portal</button>
+      <button class="action-btn" onclick="window.portal.openFolder()">📁 Abrir Pasta</button>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="section">
+    <div class="section-title">Log do servidor</div>
+    <div class="log-box" id="logBox"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let currentStatus = null;
+  let busy = false;
+
+  function formatUptime(secs) {
+    if (!secs) return '—';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  function applyStatus(st) {
+    currentStatus = st;
+    const running = st.running;
+
+    document.getElementById('dot').classList.toggle('on', running);
+    document.getElementById('statusLabel').textContent = running ? '🟢 Servidor rodando' : '🔴 Servidor parado';
+    document.getElementById('urlText').textContent     = running ? st.url : '—';
+    document.getElementById('uptime').textContent      = running ? formatUptime(st.uptime) : '—';
+    document.getElementById('cacheInfo').textContent   = running ? `${st.cachedFeeds}/${st.totalFeeds}` : '—';
+    document.getElementById('portInput').value         = st.port;
+    document.getElementById('autostartToggle').checked = st.autostart;
+
+    // Mostra url-row só quando rodando
+    const urlRow = document.querySelector('.url-row');
+    if (urlRow) urlRow.style.display = running ? 'flex' : 'none';
+
+    const btn = document.getElementById('mainBtn');
+    btn.textContent = running ? '⏹ Parar Servidor' : '▶ Iniciar Servidor';
+    btn.className   = 'main-btn ' + (running ? 'stop' : 'start');
+    // Só bloqueia se estiver em transição (busy), nunca por estado do servidor
+    btn.disabled = busy;
+  }
+
+  function copyUrl() {
+    const url = document.getElementById('urlText').textContent;
+    if (!url || url === '—') return;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector('.url-copy');
+      btn.textContent = '✓';
+      btn.style.color = 'var(--green)';
+      setTimeout(() => { btn.textContent = '⎘'; btn.style.color = ''; }, 1500);
+      showToast('✅ URL copiada!');
+    });
+  }
+
+  async function toggleServer() {
+    if (busy) return;
+    busy = true;
+    const btn = document.getElementById('mainBtn');
+    btn.disabled    = true;
+    btn.textContent = currentStatus?.running ? '⏹ Parando...' : '▶ Iniciando...';
+
+    if (currentStatus?.running) {
+      const st = await window.portal.stopServer();
+      applyStatus(st);
+      // Delay de 2s antes de liberar o botão para evitar restart imediato
+      setTimeout(() => { busy = false; applyStatus(currentStatus); }, 2000);
+    } else {
+      const st = await window.portal.startServer();
+      applyStatus(st);
+      busy = false;
+    }
+  }
+
+  async function applyPort() {
+    const val = document.getElementById('portInput').value;
+    const res = await window.portal.setPort(val);
+    if (res.error) { showToast('❌ ' + res.error); return; }
+    applyStatus(res);
+    showToast('✅ Porta alterada para ' + val);
+  }
+
+  async function toggleAutostart(enable) {
+    const res = await window.portal.setAutostart(enable);
+    showToast(res.ok
+      ? (enable ? '✅ Autostart ativado' : '✅ Autostart desativado')
+      : '❌ Erro ao alterar autostart');
+  }
+
+  function addLog(line) {
+    const box = document.getElementById('logBox');
+    const div = document.createElement('div');
+    div.className = 'log-line' + (line.includes('✓') ? ' ok' : line.includes('✗') || line.includes('Erro') ? ' err' : '');
+    div.textContent = line;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.style.opacity = '0', 2500);
+  }
+
+  // Listeners IPC
+  window.portal.onStatus(applyStatus);
+  window.portal.onLog(addLog);
+  window.portal.onTick(secs => {
+    document.getElementById('uptime').textContent = formatUptime(secs);
+  });
+
+  // Init
+  (async () => {
+    const [status, logs] = await Promise.all([
+      window.portal.getStatus(),
+      window.portal.getLogs(),
+    ]);
+    logs.forEach(addLog);
+    applyStatus(status);
+  })();
+</script>
+</body>
+</html>
