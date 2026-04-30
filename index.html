@@ -3,23 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home</title>
+<title>Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="icon" type="image/x-icon" href="logo.ico">
-
 </head>
 <body>
 
 <div class="wrapper">
-  <!-- TOP BAR -->
   <div class="topbar">
-    <div class="logo">Home</div>
+    <div class="logo">Portal</div>
     <button class="settings-btn" onclick="openSettings()" title="Configurações">⚙️</button>
   </div>
 
-  <!-- HERO: DATETIME -->
   <div class="hero">
     <div class="datetime">
       <div class="time-display" id="clock">00:00:00</div>
@@ -27,7 +23,6 @@
     </div>
   </div>
 
-  <!-- SEARCH -->
   <div class="search-area">
     <div class="engine-selector" id="engineSelector"></div>
     <div class="search-box">
@@ -38,7 +33,6 @@
     </div>
   </div>
 
-  <!-- CATEGORIES -->
   <div class="categories-section">
     <div class="section-label">Atalhos</div>
     <div class="categories-tabs" id="catTabs"></div>
@@ -47,7 +41,6 @@
 
   <div class="divider"></div>
 
-  <!-- NEWS -->
   <div class="news-section">
     <div class="news-header">
       <div class="section-label" style="margin:0">Notícias</div>
@@ -70,79 +63,117 @@
       <button class="modal-close" onclick="closeSettings()">✕</button>
     </div>
 
-    <!-- TEMA -->
-    <div class="settings-group">
-      <div class="settings-group-label">Tema</div>
-      <div class="theme-toggle">
-        <button class="theme-opt" id="themeDark" onclick="setTheme('dark')">🌙 Escuro</button>
-        <button class="theme-opt" id="themeLight" onclick="setTheme('light')">☀️ Claro</button>
+    <!-- ABAS -->
+    <div class="settings-tabs">
+      <button class="stab active" data-tab="tema"    onclick="switchTab('tema')">🎨 Tema</button>
+      <button class="stab"        data-tab="buscas"  onclick="switchTab('buscas')">🔍 Buscas</button>
+      <button class="stab"        data-tab="noticias"onclick="switchTab('noticias')">📰 Notícias</button>
+      <button class="stab"        data-tab="dados"   onclick="switchTab('dados')">💾 Dados</button>
+    </div>
+
+    <!-- ABA: TEMA -->
+    <div class="stab-content active" id="tab-tema">
+      <div class="settings-group">
+        <div class="settings-group-label">Aparência</div>
+        <div class="theme-toggle">
+          <button class="theme-opt" id="themeDark"  onclick="setTheme('dark')">🌙 Escuro</button>
+          <button class="theme-opt" id="themeLight" onclick="setTheme('light')">☀️ Claro</button>
+        </div>
       </div>
     </div>
 
-    <!-- MOTORES DE BUSCA -->
-    <div class="settings-group">
-      <div class="settings-group-label">Motores de busca</div>
-      <div class="tags-list" id="engineTagsList"></div>
-      <div class="add-input-row">
-        <input class="settings-input" id="newEngineName" placeholder="Nome (ex: Bing)">
-        <input class="settings-input" id="newEngineUrl" placeholder="URL (ex: https://bing.com/search?q=)">
-        <button class="btn-add" onclick="addEngine()">+ Add</button>
+    <!-- ABA: BUSCAS -->
+    <div class="stab-content" id="tab-buscas">
+      <div class="settings-group">
+        <div class="settings-group-label">Motores de busca</div>
+        <div class="tags-list" id="engineTagsList"></div>
+        <div class="add-input-row">
+          <input class="settings-input" id="newEngineName" placeholder="Nome (ex: Bing)">
+          <input class="settings-input" id="newEngineUrl"  placeholder="URL (ex: https://bing.com/search?q=)">
+          <button class="btn-add" onclick="addEngine()">+ Add</button>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-label">Categorias e Sites</div>
+        <div id="catEditor"></div>
+        <div class="add-input-row" style="margin-top:10px">
+          <input class="settings-input" id="newCatName" placeholder="Nova categoria">
+          <button class="btn-add" onclick="addCategory()">+ Add</button>
+        </div>
       </div>
     </div>
 
-    <!-- CATEGORIAS / SITES -->
-    <div class="settings-group">
-      <div class="settings-group-label">Categorias e Sites</div>
-      <div id="catEditor"></div>
-      <div class="add-input-row" style="margin-top:10px">
-        <input class="settings-input" id="newCatName" placeholder="Nova categoria">
-        <button class="btn-add" onclick="addCategory()">+ Add</button>
+    <!-- ABA: NOTÍCIAS -->
+    <div class="stab-content" id="tab-noticias">
+
+      <div class="settings-group">
+        <div class="settings-group-label">Feeds RSS</div>
+        <div class="tags-list" id="feedTagsList"></div>
+        <div class="add-input-row">
+          <input class="settings-input" id="newFeedName" placeholder="Nome (ex: G1)">
+          <input class="settings-input" id="newFeedUrl"  placeholder="URL do RSS">
+          <button class="btn-add" onclick="addFeed()">+ Add</button>
+        </div>
       </div>
+
+      <div class="settings-group">
+        <div class="settings-group-label">Limite de matérias</div>
+        <div class="limit-grid">
+          <div class="limit-item">
+            <div class="settings-hint" style="margin-bottom:6px">Por site (feed individual)</div>
+            <input class="settings-input" id="newsMaxInput" type="number" min="1" max="50" value="5" style="width:80px">
+          </div>
+          <div class="limit-item">
+            <div class="settings-hint" style="margin-bottom:6px">Modo "Todos"</div>
+            <input class="settings-input" id="newsMaxAllInput" type="number" min="1" max="50" value="10" style="width:80px">
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-label">Filtro positivo <span class="filter-badge pos">MOSTRA</span></div>
+        <div class="settings-hint">Exibe só notícias que contenham alguma das tags. Vazio = exibe tudo.</div>
+        <div class="scope-selector" id="scopeSelectorPos">
+          <button class="scope-opt" data-scope="title"       onclick="setFilterScope('title')">Título</button>
+          <button class="scope-opt" data-scope="description" onclick="setFilterScope('description')">Descrição</button>
+          <button class="scope-opt" data-scope="both"        onclick="setFilterScope('both')">Ambos</button>
+        </div>
+        <div class="tags-list" id="filterTagsList"></div>
+        <div class="add-input-row">
+          <input class="settings-input" id="newFilterInput" placeholder="ex: tecnologia, IA..."
+            onkeydown="if(event.key==='Enter') addFilter()">
+          <button class="btn-add" onclick="addFilter()">+ Add</button>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-label">Filtro negativo <span class="filter-badge neg">OCULTA</span></div>
+        <div class="settings-hint">Oculta notícias que contenham alguma das tags, independente do filtro positivo.</div>
+        <div class="scope-selector" id="scopeSelectorNeg">
+          <button class="scope-opt-neg" data-scope="title"       onclick="setFilterScopeNeg('title')">Título</button>
+          <button class="scope-opt-neg" data-scope="description" onclick="setFilterScopeNeg('description')">Descrição</button>
+          <button class="scope-opt-neg" data-scope="both"        onclick="setFilterScopeNeg('both')">Ambos</button>
+        </div>
+        <div class="tags-list" id="filterNegTagsList"></div>
+        <div class="add-input-row">
+          <input class="settings-input" id="newFilterNegInput" placeholder="ex: futebol, celebridades..."
+            onkeydown="if(event.key==='Enter') addFilterNeg()">
+          <button class="btn-add btn-neg" onclick="addFilterNeg()">+ Add</button>
+        </div>
+      </div>
+
     </div>
 
-    <!-- FEEDS RSS -->
-    <div class="settings-group">
-      <div class="settings-group-label">Feeds de Notícias (RSS)</div>
-      <div class="tags-list" id="feedTagsList"></div>
-      <div class="add-input-row">
-        <input class="settings-input" id="newFeedName" placeholder="Nome (ex: G1)">
-        <input class="settings-input" id="newFeedUrl" placeholder="URL do RSS">
-        <button class="btn-add" onclick="addFeed()">+ Add</button>
-      </div>
-    </div>
-
-    <!-- FILTRO DE CONTEÚDO -->
-    <div class="settings-group">
-      <div class="settings-group-label">Filtro de conteúdo</div>
-      <div class="settings-hint">Só exibe notícias que contenham alguma das tags abaixo. Deixe vazio para exibir tudo.</div>
-      <div class="settings-hint" style="margin-bottom:8px">Onde filtrar:</div>
-      <div class="scope-selector">
-        <button class="scope-opt" data-scope="title"       onclick="setFilterScope('title')">Título</button>
-        <button class="scope-opt" data-scope="description" onclick="setFilterScope('description')">Descrição</button>
-        <button class="scope-opt" data-scope="both"        onclick="setFilterScope('both')">Ambos</button>
-      </div>
-      <div class="tags-list" id="filterTagsList"></div>
-      <div class="add-input-row">
-        <input class="settings-input" id="newFilterInput" placeholder="ex: tecnologia, IA, python..."
-          onkeydown="if(event.key==='Enter') addFilter()">
-        <button class="btn-add" onclick="addFilter()">+ Add</button>
-      </div>
-    </div>
-
-    <!-- MÁXIMO DE MATÉRIAS -->
-    <div class="settings-group">
-      <div class="settings-group-label">Máximo de matérias por site</div>
-      <div class="settings-hint">Quantas notícias exibir por feed (vale também no modo "Todos").</div>
-      <input class="settings-input" id="newsMaxInput" type="number" min="1" max="50" value="5" style="width:100px">
-    </div>
-
-    <!-- EXPORTAR / IMPORTAR -->
-    <div class="settings-group">
-      <div class="settings-group-label">Dados (db.json)</div>
-      <div class="settings-hint">O db.json é salvo automaticamente na pasta do projeto a cada alteração. Use os botões abaixo para backup ou migração.</div>
-      <div class="theme-toggle">
-        <button class="theme-opt" onclick="exportDB()">⬇ Exportar db.json</button>
-        <button class="theme-opt" onclick="importDB()">⬆ Importar db.json</button>
+    <!-- ABA: DADOS -->
+    <div class="stab-content" id="tab-dados">
+      <div class="settings-group">
+        <div class="settings-group-label">Backup / Restauração</div>
+        <div class="settings-hint">O db.json é salvo automaticamente a cada alteração. Use os botões abaixo para backup ou migração entre máquinas.</div>
+        <div class="theme-toggle">
+          <button class="theme-opt" onclick="exportDB()">⬇ Exportar db.json</button>
+          <button class="theme-opt" onclick="importDB()">⬆ Importar db.json</button>
+        </div>
       </div>
     </div>
 

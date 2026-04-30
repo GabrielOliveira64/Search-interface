@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// CONFIG — carregada do servidor (db.json)
+// CONFIG
 // ═══════════════════════════════════════
 let cfg = null;
 
@@ -7,10 +7,12 @@ async function loadConfig() {
   try {
     const res = await fetch('/api/config');
     cfg = await res.json();
-    // garante campos novos em configs antigas
-    if (cfg.newsMaxPerFeed === undefined) cfg.newsMaxPerFeed = 5;
-    if (!cfg.newsFilters) cfg.newsFilters = [];
-    if (!cfg.newsFilterScope) cfg.newsFilterScope = 'title';
+    if (cfg.newsMaxPerFeed   === undefined) cfg.newsMaxPerFeed   = 5;
+    if (cfg.newsMaxAll       === undefined) cfg.newsMaxAll       = 10;
+    if (!cfg.newsFilters)     cfg.newsFilters     = [];
+    if (!cfg.newsFiltersNeg)  cfg.newsFiltersNeg  = [];
+    if (!cfg.newsFilterScope)    cfg.newsFilterScope    = 'title';
+    if (!cfg.newsFilterScopeNeg) cfg.newsFilterScopeNeg = 'title';
     if (cfg.activeFeed === undefined) cfg.activeFeed = -1;
   } catch {
     showToast('❌ Não foi possível conectar ao servidor. Rode: node server.js');
@@ -30,7 +32,7 @@ async function saveConfig() {
 }
 
 // ═══════════════════════════════════════
-// EXPORT / IMPORT db.json
+// EXPORT / IMPORT
 // ═══════════════════════════════════════
 function exportDB() {
   const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
@@ -56,16 +58,18 @@ function importDB() {
         if (!imported.feeds || !imported.categories || !imported.engines)
           throw new Error('Arquivo inválido');
         cfg = imported;
-        if (cfg.newsMaxPerFeed === undefined) cfg.newsMaxPerFeed = 5;
-        if (!cfg.newsFilters) cfg.newsFilters = [];
-        if (!cfg.newsFilterScope) cfg.newsFilterScope = 'title';
+        if (cfg.newsMaxPerFeed   === undefined) cfg.newsMaxPerFeed   = 5;
+        if (cfg.newsMaxAll       === undefined) cfg.newsMaxAll       = 10;
+        if (!cfg.newsFilters)     cfg.newsFilters     = [];
+        if (!cfg.newsFiltersNeg)  cfg.newsFiltersNeg  = [];
+        if (!cfg.newsFilterScope)    cfg.newsFilterScope    = 'title';
+        if (!cfg.newsFilterScopeNeg) cfg.newsFilterScopeNeg = 'title';
         if (cfg.activeFeed === undefined) cfg.activeFeed = -1;
         await saveConfig();
         renderSettingsModal();
         renderEngines();
         renderCategories();
         renderNewsTabs();
-        // Invalida cache e recarrega
         feedCache = {};
         loadNews();
         showToast('✅ db.json importado com sucesso!');
@@ -105,7 +109,7 @@ function showToast(msg) {
 function setTheme(t) {
   cfg.theme = t;
   document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('themeDark').classList.toggle('active', t === 'dark');
+  document.getElementById('themeDark').classList.toggle('active',  t === 'dark');
   document.getElementById('themeLight').classList.toggle('active', t === 'light');
 }
 
@@ -126,19 +130,14 @@ function updateClock() {
 }
 
 // ═══════════════════════════════════════
-// SEARCH ENGINES
+// SEARCH
 // ═══════════════════════════════════════
 function renderEngines() {
   document.getElementById('engineSelector').innerHTML = cfg.engines.map((e, i) =>
     `<button class="engine-btn ${i === cfg.activeEngine ? 'active' : ''}" onclick="selectEngine(${i})">${escHtml(e.name)}</button>`
   ).join('');
 }
-
-function selectEngine(i) {
-  cfg.activeEngine = i;
-  renderEngines();
-}
-
+function selectEngine(i) { cfg.activeEngine = i; renderEngines(); }
 function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
@@ -151,14 +150,11 @@ function doSearch() {
 function renderCategories() {
   const tabs = document.getElementById('catTabs');
   const grid = document.getElementById('sitesGrid');
-
   tabs.innerHTML = cfg.categories.map((c, i) =>
     `<button class="cat-tab ${i === cfg.activeCat ? 'active' : ''}" onclick="selectCat(${i})">${escHtml(c.name)}</button>`
   ).join('');
-
   const cat = cfg.categories[cfg.activeCat] || cfg.categories[0];
   if (!cat) { grid.innerHTML = ''; return; }
-
   grid.innerHTML = cat.sites.map(s => `
     <a class="site-card" href="${s.url}" target="_blank">
       <img class="site-favicon" src="${s.favicon}"
@@ -168,25 +164,18 @@ function renderCategories() {
     </a>
   `).join('');
 }
-
-function selectCat(i) {
-  cfg.activeCat = i;
-  renderCategories();
-}
+function selectCat(i) { cfg.activeCat = i; renderCategories(); }
 
 // ═══════════════════════════════════════
-// NEWS — cache no browser + /api/rss
+// NEWS
 // ═══════════════════════════════════════
-
-// Cache local no browser: { [url]: { items: [], fetchedAt: number } }
 let feedCache = {};
-const CACHE_TTL = 5 * 60 * 1000; // 5 min
+const CACHE_TTL = 5 * 60 * 1000;
 
 async function fetchFeed(feedUrl) {
   const now = Date.now();
   const cached = feedCache[feedUrl];
   if (cached && (now - cached.fetchedAt) < CACHE_TTL) return cached.xml;
-
   const res = await fetch(`/api/rss?url=${encodeURIComponent(feedUrl)}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const xml = await res.text();
@@ -194,34 +183,43 @@ async function fetchFeed(feedUrl) {
   return xml;
 }
 
-// Warmup: busca todos os feeds em paralelo assim que a página abre.
-// O servidor já fez o warmup dele, então a resposta vem do cache — instantâneo.
 function warmupAllFeeds() {
   if (!cfg.feeds?.length) return;
-  cfg.feeds.forEach(f => {
-    fetchFeed(f.url).catch(() => {}); // silencioso, só preenche cache
-  });
+  cfg.feeds.forEach(f => fetchFeed(f.url).catch(() => {}));
 }
 
-// Aplica filtros de conteúdo com escopo configurável
+// Aplica filtro positivo (MOSTRA) e negativo (OCULTA)
 function applyFilters(items) {
-  const filters = (cfg.newsFilters || []).map(f => f.toLowerCase().trim()).filter(Boolean);
-  if (!filters.length) return items;
-
-  const scope = cfg.newsFilterScope || 'title'; // 'title' | 'description' | 'both'
+  const posFilters = (cfg.newsFilters    || []).map(f => f.toLowerCase().trim()).filter(Boolean);
+  const negFilters = (cfg.newsFiltersNeg || []).map(f => f.toLowerCase().trim()).filter(Boolean);
+  const posScope   = cfg.newsFilterScope    || 'title';
+  const negScope   = cfg.newsFilterScopeNeg || 'title';
 
   return items.filter(item => {
-    let haystack = '';
-    if (scope === 'title' || scope === 'both') haystack += ' ' + item.title.toLowerCase();
-    if (scope === 'description' || scope === 'both') haystack += ' ' + item.desc.toLowerCase();
-    return filters.some(f => haystack.includes(f));
+    const titleLow = item.title.toLowerCase();
+    const descLow  = item.desc.toLowerCase();
+
+    const haystackPos = (posScope === 'title') ? titleLow
+      : (posScope === 'description') ? descLow
+      : titleLow + ' ' + descLow;
+
+    const haystackNeg = (negScope === 'title') ? titleLow
+      : (negScope === 'description') ? descLow
+      : titleLow + ' ' + descLow;
+
+    // 1. Filtro negativo: se bater qualquer tag negativa → rejeita imediatamente
+    if (negFilters.length && negFilters.some(f => haystackNeg.includes(f))) return false;
+
+    // 2. Filtro positivo: se não houver tags positivas → passa; senão precisa bater uma
+    if (posFilters.length && !posFilters.some(f => haystackPos.includes(f))) return false;
+
+    return true;
   });
 }
 
 function parseXML(xmlText, feedName, limit) {
   const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
   const rawItems = [...xml.querySelectorAll('item, entry')];
-
   const items = rawItems.map(item => {
     const title   = item.querySelector('title')?.textContent?.trim() || '';
     const linkEl  = item.querySelector('link');
@@ -230,7 +228,6 @@ function parseXML(xmlText, feedName, limit) {
     const pubDate = item.querySelector('pubDate, published, updated')?.textContent || '';
     return { title, link, desc, pubDate, feedName };
   });
-
   return applyFilters(items).slice(0, limit);
 }
 
@@ -261,88 +258,66 @@ function renderNewsTabs() {
   el.innerHTML = html;
 }
 
-function selectFeed(i) {
-  cfg.activeFeed = i;
-  renderNewsTabs();
-  loadNews();
-}
+function selectFeed(i) { cfg.activeFeed = i; renderNewsTabs(); loadNews(); }
 
 async function loadNews() {
-  const grid  = document.getElementById('newsGrid');
-  const btn   = document.getElementById('refreshBtn');
-  const limit = cfg.newsMaxPerFeed || 5;
+  const grid     = document.getElementById('newsGrid');
+  const btn      = document.getElementById('refreshBtn');
+  const limitOne = cfg.newsMaxPerFeed || 5;
+  const limitAll = cfg.newsMaxAll     || 10;
 
-  if (!cfg.feeds.length) {
-    grid.innerHTML = '<div class="news-empty">Nenhum feed configurado.</div>';
-    return;
-  }
+  if (!cfg.feeds.length) { grid.innerHTML = '<div class="news-empty">Nenhum feed configurado.</div>'; return; }
 
   btn.classList.add('spinning');
   setTimeout(() => btn.classList.remove('spinning'), 700);
 
   // ── Feed único ──────────────────────────────────────────────
   if (cfg.activeFeed >= 0) {
-    const feed = cfg.feeds[cfg.activeFeed];
-
-    // Se já tem no cache, renderiza imediatamente sem loader
+    const feed   = cfg.feeds[cfg.activeFeed];
     const cached = feedCache[feed.url];
-    const now    = Date.now();
-    if (cached && (now - cached.fetchedAt) < CACHE_TTL) {
-      const items = parseXML(cached.xml, feed.name, limit);
+    if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
+      const items = parseXML(cached.xml, feed.name, limitOne);
       grid.innerHTML = items.length
         ? items.map(renderNewsCard).join('')
         : '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
       return;
     }
-
     grid.innerHTML = `<div class="news-loading"><div class="loader"></div><br>Carregando ${escHtml(feed.name)}...</div>`;
     try {
       const xml   = await fetchFeed(feed.url);
-      const items = parseXML(xml, feed.name, limit);
+      const items = parseXML(xml, feed.name, limitOne);
       grid.innerHTML = items.length
         ? items.map(renderNewsCard).join('')
         : '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
     } catch {
-      grid.innerHTML = `<div class="news-empty">
-        ⚠️ Não foi possível carregar o feed.<br><br>
-        <small style="line-height:1.8">
-          • Verifique se a URL do RSS está correta<br>
-          • Tente novamente em alguns segundos (↺)
-        </small>
-      </div>`;
+      grid.innerHTML = `<div class="news-empty">⚠️ Não foi possível carregar o feed.<br><br>
+        <small style="line-height:1.8">• Verifique se a URL do RSS está correta<br>• Tente novamente (↺)</small></div>`;
     }
     return;
   }
 
-  // ── Todos: carregamento paralelo com atualização progressiva ──
+  // ── Todos: paralelo com placeholders imediatos ──────────────
   grid.innerHTML = cfg.feeds.map((f, i) => {
-    // Se já está em cache, mostra imediatamente sem placeholder
     const cached = feedCache[f.url];
-    const now    = Date.now();
-    if (cached?.xml && (now - cached.fetchedAt) < CACHE_TTL) {
-      const items = parseXML(cached.xml, f.name, limit);
+    if (cached?.xml && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
+      const items = parseXML(cached.xml, f.name, limitAll);
       const cards = items.length
         ? items.map(renderNewsCard).join('')
         : `<div class="news-empty" style="padding:12px 0">Sem resultados para os filtros.</div>`;
-      return `<div class="feed-group" id="feedGroup_${i}">
-        <div class="feed-group-header">${escHtml(f.name)}</div>${cards}</div>`;
+      return `<div class="feed-group" id="feedGroup_${i}"><div class="feed-group-header">${escHtml(f.name)}</div>${cards}</div>`;
     }
-    // Ainda não tem cache — mostra placeholder
     return `<div class="feed-group" id="feedGroup_${i}">
       <div class="feed-group-header">${escHtml(f.name)}</div>
       <div class="feed-group-loading"><div class="loader" style="width:16px;height:16px;border-width:2px"></div></div>
     </div>`;
   }).join('');
 
-  // Busca os que ainda não estão em cache em paralelo
   cfg.feeds.forEach((feed, i) => {
     const cached = feedCache[feed.url];
-    const now    = Date.now();
-    if (cached?.xml && (now - cached.fetchedAt) < CACHE_TTL) return; // já renderizado acima
-
+    if (cached?.xml && (Date.now() - cached.fetchedAt) < CACHE_TTL) return;
     fetchFeed(feed.url)
       .then(xml => {
-        const items = parseXML(xml, feed.name, limit);
+        const items = parseXML(xml, feed.name, limitAll);
         const el    = document.getElementById(`feedGroup_${i}`);
         if (!el) return;
         const cards = items.length
@@ -359,36 +334,41 @@ async function loadNews() {
   });
 }
 
-// ── forçar refresh ignorando cache ──
-function forceRefresh() {
-  feedCache = {};
-  loadNews();
-}
+function forceRefresh() { feedCache = {}; loadNews(); }
 
 // ═══════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════
 function stripHtml(html) {
-  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
+  return html.replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
 }
-
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 function formatDate(d) {
   if (isNaN(d)) return '';
   const diff = Date.now() - d;
-  if (diff < 3600000)  return `${Math.floor(diff / 60000)}min atrás`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h atrás`;
+  if (diff < 3600000)  return `${Math.floor(diff/60000)}min atrás`;
+  if (diff < 86400000) return `${Math.floor(diff/3600000)}h atrás`;
   return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
 }
 
 // ═══════════════════════════════════════
-// SETTINGS MODAL
+// SETTINGS — ABAS
 // ═══════════════════════════════════════
+let activeTab = 'tema';
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.stab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.stab-content').forEach(c =>
+    c.classList.toggle('active', c.id === `tab-${tab}`));
+}
+
 function openSettings() {
   renderSettingsModal();
+  switchTab(activeTab); // mantém a aba que estava aberta
   document.getElementById('settingsModal').classList.add('open');
 }
 
@@ -399,25 +379,35 @@ function closeSettings() {
 function renderSettingsModal() {
   setTheme(cfg.theme);
 
+  // Motores
   document.getElementById('engineTagsList').innerHTML = cfg.engines.map((e, i) =>
     `<span class="settings-tag">${escHtml(e.name)}<button class="tag-remove" onclick="removeEngine(${i})">✕</button></span>`
   ).join('');
 
+  // Feeds
   document.getElementById('feedTagsList').innerHTML = cfg.feeds.map((f, i) =>
     `<span class="settings-tag">${escHtml(f.name)}<button class="tag-remove" onclick="removeFeed(${i})">✕</button></span>`
   ).join('');
 
+  // Limites
+  document.getElementById('newsMaxInput').value    = cfg.newsMaxPerFeed || 5;
+  document.getElementById('newsMaxAllInput').value = cfg.newsMaxAll     || 10;
+
+  // Filtro positivo
   document.getElementById('filterTagsList').innerHTML = (cfg.newsFilters || []).map((f, i) =>
     `<span class="settings-tag">${escHtml(f)}<button class="tag-remove" onclick="removeFilter(${i})">✕</button></span>`
   ).join('');
+  const posScope = cfg.newsFilterScope || 'title';
+  document.querySelectorAll('.scope-opt').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.scope === posScope));
 
-  document.getElementById('newsMaxInput').value    = cfg.newsMaxPerFeed || 5;
-
-  // Escopo do filtro
-  const scope = cfg.newsFilterScope || 'title';
-  document.querySelectorAll('.scope-opt').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.scope === scope);
-  });
+  // Filtro negativo
+  document.getElementById('filterNegTagsList').innerHTML = (cfg.newsFiltersNeg || []).map((f, i) =>
+    `<span class="settings-tag neg">${escHtml(f)}<button class="tag-remove" onclick="removeFilterNeg(${i})">✕</button></span>`
+  ).join('');
+  const negScope = cfg.newsFilterScopeNeg || 'title';
+  document.querySelectorAll('.scope-opt-neg').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.scope === negScope));
 
   renderCatEditor();
 }
@@ -427,7 +417,7 @@ function renderCatEditor() {
     <div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <span style="font-weight:700;font-size:13px">${escHtml(cat.name)}</span>
-        <button class="tag-remove" onclick="removeCat(${ci})">✕ remover categoria</button>
+        <button class="tag-remove" onclick="removeCat(${ci})">✕ remover</button>
       </div>
       <div class="tags-list">
         ${cat.sites.map((s, si) =>
@@ -436,7 +426,7 @@ function renderCatEditor() {
       </div>
       <div class="add-input-row">
         <input class="settings-input" id="newSiteName_${ci}" placeholder="Nome do site">
-        <input class="settings-input" id="newSiteUrl_${ci}" placeholder="URL (https://...)">
+        <input class="settings-input" id="newSiteUrl_${ci}"  placeholder="URL (https://...)">
         <button class="btn-add" onclick="addSite(${ci})">+ Add</button>
       </div>
     </div>
@@ -451,12 +441,12 @@ function addEngine() {
   cfg.engines.push({ name, url });
   document.getElementById('newEngineName').value = '';
   document.getElementById('newEngineUrl').value  = '';
-  renderSettingsModal();
+  renderSettingsModal(); switchTab('buscas');
 }
 function removeEngine(i) {
   cfg.engines.splice(i, 1);
   if (cfg.activeEngine >= cfg.engines.length) cfg.activeEngine = 0;
-  renderSettingsModal();
+  renderSettingsModal(); switchTab('buscas');
 }
 
 // ── feeds ──
@@ -467,12 +457,12 @@ function addFeed() {
   cfg.feeds.push({ name, url });
   document.getElementById('newFeedName').value = '';
   document.getElementById('newFeedUrl').value  = '';
-  renderSettingsModal();
+  renderSettingsModal(); switchTab('noticias');
 }
 function removeFeed(i) {
   cfg.feeds.splice(i, 1);
   if (cfg.activeFeed >= cfg.feeds.length) cfg.activeFeed = -1;
-  renderSettingsModal();
+  renderSettingsModal(); switchTab('noticias');
 }
 
 // ── categorias ──
@@ -493,43 +483,48 @@ function addSite(ci) {
   const url  = document.getElementById(`newSiteUrl_${ci}`).value.trim();
   if (!name || !url) return;
   const cleanUrl = url.startsWith('http') ? url : 'https://' + url;
-  const host = new URL(cleanUrl).hostname;
-  cfg.categories[ci].sites.push({ name, url: cleanUrl, favicon: `https://${host}/favicon.ico` });
+  cfg.categories[ci].sites.push({ name, url: cleanUrl, favicon: `https://${new URL(cleanUrl).hostname}/favicon.ico` });
   renderCatEditor();
 }
-function removeSite(ci, si) {
-  cfg.categories[ci].sites.splice(si, 1);
-  renderCatEditor();
-}
+function removeSite(ci, si) { cfg.categories[ci].sites.splice(si, 1); renderCatEditor(); }
 
-// ── filtros ──
+// ── filtro positivo ──
 function addFilter() {
   const val = document.getElementById('newFilterInput').value.trim();
   if (!val) return;
-  if (!cfg.newsFilters) cfg.newsFilters = [];
   if (!cfg.newsFilters.includes(val)) cfg.newsFilters.push(val);
   document.getElementById('newFilterInput').value = '';
-  renderSettingsModal();
+  renderSettingsModal(); switchTab('noticias');
 }
-function removeFilter(i) {
-  cfg.newsFilters.splice(i, 1);
-  renderSettingsModal();
-}
+function removeFilter(i) { cfg.newsFilters.splice(i, 1); renderSettingsModal(); switchTab('noticias'); }
 function setFilterScope(scope) {
   cfg.newsFilterScope = scope;
-  document.querySelectorAll('.scope-opt').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.scope === scope);
-  });
+  document.querySelectorAll('.scope-opt').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.scope === scope));
 }
 
-// ── máximo por feed ──
-function updateMaxPerFeed() {
-  const val = parseInt(document.getElementById('newsMaxInput').value);
-  if (!isNaN(val) && val > 0) cfg.newsMaxPerFeed = val;
+// ── filtro negativo ──
+function addFilterNeg() {
+  const val = document.getElementById('newFilterNegInput').value.trim();
+  if (!val) return;
+  if (!cfg.newsFiltersNeg) cfg.newsFiltersNeg = [];
+  if (!cfg.newsFiltersNeg.includes(val)) cfg.newsFiltersNeg.push(val);
+  document.getElementById('newFilterNegInput').value = '';
+  renderSettingsModal(); switchTab('noticias');
+}
+function removeFilterNeg(i) { cfg.newsFiltersNeg.splice(i, 1); renderSettingsModal(); switchTab('noticias'); }
+function setFilterScopeNeg(scope) {
+  cfg.newsFilterScopeNeg = scope;
+  document.querySelectorAll('.scope-opt-neg').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.scope === scope));
 }
 
+// ── salvar ──
 async function saveSettings() {
-  updateMaxPerFeed();
+  const maxOne = parseInt(document.getElementById('newsMaxInput').value);
+  const maxAll = parseInt(document.getElementById('newsMaxAllInput').value);
+  if (!isNaN(maxOne) && maxOne > 0) cfg.newsMaxPerFeed = maxOne;
+  if (!isNaN(maxAll) && maxAll > 0) cfg.newsMaxAll     = maxAll;
   await saveConfig();
   closeSettings();
   renderEngines();
@@ -549,19 +544,14 @@ document.getElementById('settingsModal').addEventListener('click', function(e) {
 // ═══════════════════════════════════════
 async function init() {
   await loadConfig();
-  if (!cfg) return; // servidor offline
-
+  if (!cfg) return;
   setTheme(cfg.theme);
   updateClock();
   setInterval(updateClock, 1000);
   renderEngines();
   renderCategories();
   renderNewsTabs();
-
-  // Warmup no browser: preenche o cache local a partir do cache do servidor
   warmupAllFeeds();
-
-  // Renderiza notícias (já virão do cache do servidor, sem delay visível)
   loadNews();
 }
 

@@ -679,3 +679,114 @@ body::before {
   border-color: var(--muted);
   color: var(--text);
 }
+
+/* ═══════════════════════════════════════
+   SETTINGS TABS
+═══════════════════════════════════════ */
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.stab {
+  flex: 1;
+  padding: 8px 4px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.18s;
+  white-space: nowrap;
+  text-align: center;
+}
+.stab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+.stab:hover:not(.active) { color: var(--text); }
+
+/* Conteúdo das abas — altura fixa para não oscilar */
+.stab-content {
+  display: none;
+  min-height: 340px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.stab-content.active { display: block; }
+
+/* ═══════════════════════════════════════
+   FILTER BADGES
+═══════════════════════════════════════ */
+.filter-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.filter-badge.pos { background: rgba(124,107,255,0.15); color: var(--accent); }
+.filter-badge.neg { background: rgba(248,113,113,0.15); color: #f87171; }
+
+/* Tags negativas em vermelho suave */
+.settings-tag.neg {
+  border-color: rgba(248,113,113,0.3);
+  color: #f87171;
+}
+
+/* ═══════════════════════════════════════
+   SCOPE SELECTOR NEGATIVO
+═══════════════════════════════════════ */
+.scope-opt-neg {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-align: center;
+  transition: all 0.2s;
+}
+.scope-opt-neg.active {
+  border-color: #f87171;
+  color: #f87171;
+  background: rgba(248,113,113,0.08);
+}
+.scope-opt-neg:hover:not(.active) { border-color: var(--muted); color: var(--text); }
+
+/* ═══════════════════════════════════════
+   BTN NEGATIVO
+═══════════════════════════════════════ */
+.btn-neg {
+  background: rgba(248,113,113,0.15) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(248,113,113,0.3) !important;
+}
+.btn-neg:hover { background: rgba(248,113,113,0.25) !important; }
+
+/* ═══════════════════════════════════════
+   LIMIT GRID
+═══════════════════════════════════════ */
+.limit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.limit-item { display: flex; flex-direction: column; }

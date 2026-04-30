@@ -1,21 +1,7 @@
 {
   "theme": "dark",
   "newsMaxPerFeed": 5,
-  "newsFilters": [
-    "tecnologia",
-    "IA",
-    "Inteligencia artificial",
-    "games",
-    "programação",
-    "agent",
-    "steam",
-    "jogo",
-    "game",
-    "playstation",
-    "xbox",
-    "epic",
-    "epic games"
-  ],
+  "newsFilters": [],
   "engines": [
     {
       "name": "Google",
@@ -178,7 +164,10 @@
     }
   ],
   "activeEngine": 0,
-  "activeCat": 2,
-  "activeFeed": 0,
-  "newsFilterScope": "both"
+  "activeCat": 0,
+  "activeFeed": -1,
+  "newsFilterScope": "both",
+  "newsMaxAll": 5,
+  "newsFiltersNeg": [],
+  "newsFilterScopeNeg": "title"
 }
