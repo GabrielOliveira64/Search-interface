@@ -26,72 +26,72 @@
   ],
   "categories": [
     {
-      "name": "Trabalho",
+      "name": "Dev",
       "sites": [
         {
-          "name": "GitHub",
-          "url": "https://github.com",
+          "name": "Github",
+          "url": "https://github.com/",
           "favicon": "https://github.com/favicon.ico"
         },
         {
-          "name": "Stack Overflow",
-          "url": "https://stackoverflow.com",
-          "favicon": "https://stackoverflow.com/favicon.ico"
+          "name": "Hugginface",
+          "url": "https://huggingface.co/",
+          "favicon": "https://huggingface.co/favicon.ico"
         },
         {
-          "name": "Notion",
-          "url": "https://notion.so",
-          "favicon": "https://www.notion.so/front-static/favicon.ico"
+          "name": "StackOverflow",
+          "url": "https://stackoverflow.com/questions",
+          "favicon": "https://stackoverflow.com/favicon.ico"
+        }
+      ]
+    },
+    {
+      "name": "IA",
+      "sites": [
+        {
+          "name": "Claude",
+          "url": "https://claude.ai/",
+          "favicon": "https://claude.ai/favicon.ico"
+        },
+        {
+          "name": "Chatgpt",
+          "url": "https://chatgpt.com/",
+          "favicon": "https://chatgpt.com/favicon.ico"
+        },
+        {
+          "name": "MiMo",
+          "url": "https://aistudio.xiaomimimo.com/",
+          "favicon": "https://aistudio.xiaomimimo.com/favicon.ico"
+        },
+        {
+          "name": "Gemini",
+          "url": "https://gemini.google.com/app",
+          "favicon": "https://gemini.google.com/favicon.ico"
+        },
+        {
+          "name": "Liss",
+          "url": "https://localhost:5000/",
+          "favicon": "https://localhost/favicon.ico"
+        }
+      ]
+    },
+    {
+      "name": "Design",
+      "sites": [
+        {
+          "name": "Canva",
+          "url": "https://www.canva.com/",
+          "favicon": "https://www.canva.com/favicon.ico"
         },
         {
           "name": "Figma",
-          "url": "https://figma.com",
-          "favicon": "https://static.figma.com/app/icon/1/favicon.png"
+          "url": "https://www.figma.com/pt-br/design/",
+          "favicon": "https://www.figma.com/favicon.ico"
         },
         {
-          "name": "Gmail",
-          "url": "https://mail.google.com",
-          "favicon": "https://mail.google.com/favicon.ico"
-        },
-        {
-          "name": "Drive",
-          "url": "https://drive.google.com",
-          "favicon": "https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png"
-        },
-        {
-          "name": "px",
-          "url": "https://pixabay.com/pt/sound-effects/search/alarme/",
-          "favicon": "https://pixabay.com/favicon.ico"
-        },
-        {
-          "name": "goanime",
-          "url": "https://www.goanime.fun/",
-          "favicon": "https://www.goanime.fun/favicon.ico"
-        },
-        {
-          "name": "pinterest",
+          "name": "Pinterest",
           "url": "https://br.pinterest.com/",
           "favicon": "https://br.pinterest.com/favicon.ico"
-        },
-        {
-          "name": "Animes",
-          "url": "https://animesonline.cloud/episodio/rezero-kara-hajimeru-isekai-seikatsu-episodio-02",
-          "favicon": "https://animesonline.cloud/favicon.ico"
-        },
-        {
-          "name": "RedeCanais",
-          "url": "https://www14.redecanais.in/serie/battlestar-galactica-2/",
-          "favicon": "https://www14.redecanais.in/favicon.ico"
-        },
-        {
-          "name": "Rezero",
-          "url": "https://doramasonline.org/br/episodio/sweet-home-temporada-1-episodio-3/",
-          "favicon": "https://doramasonline.org/favicon.ico"
-        },
-        {
-          "name": "Aliexpress",
-          "url": "https://pt.aliexpress.com/item/1005007386086113.html?spm=a2g0o.best.0.0.36c722aekknwn8&pdp_npi=6%40dis%21BRL%21R%24212%2C11%21R%2471%2C96%21%21%21%21%21%402101d94417605695849841407e3f76%2112000046482186680%21btfaff%21%21%21%211%210%21&afTraceInfo=1005007386086113__pc__pcBestMore2Love__tzlHQVj__1760569585391&_gl=1*1sg9php*_gcl_aw*R0NMLjE3NTcyODMxNjAuQ2p3S0NBancydlRGQmhBdUVpd0FGYVNjd2hCWWlYWmlMQkJLUWFQcnhOZWhueUloQllNSUR0SldIQ1lKMllfaXZULVNlYkpXWEM3Q1Rob0M1QlVRQXZEX0J3RQ..*_gcl_dc*R0NMLjE3NTcyODMxNjAuQ2p3S0NBancydlRGQmhBdUVpd0FGYVNjd2hCWWlYWmlMQkJLUWFQcnhOZWhueUloQllNSUR0SldIQ1lKMllfaXZULVNlYkpXWEM3Q1Rob0M1QlVRQXZEX0J3RQ..*_gcl_au*Mjc4NDYzMDY2LjE3NTQyODIyMDg.*_ga*ODg1NjcxMTYwLjE3NTQyODIyMDg.*_ga_VED1YSGNC7*czE3NjA1NTkyOTQkbzE1JGcxJHQxNzYwNTY5NTg1JGo1NCRsMCRoMA..&gatewayAdapt=glo2bra",
-          "favicon": "https://pt.aliexpress.com/favicon.ico"
         }
       ]
     },
@@ -99,101 +99,31 @@
       "name": "Entretenimento",
       "sites": [
         {
-          "name": "YouTube",
-          "url": "https://youtube.com",
-          "favicon": "https://youtube.com/favicon.ico"
-        },
-        {
-          "name": "Netflix",
-          "url": "https://netflix.com",
-          "favicon": "https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.ico"
+          "name": "Youtube",
+          "url": "https://www.youtube.com/",
+          "favicon": "https://www.youtube.com/favicon.ico"
         },
         {
           "name": "Spotify",
-          "url": "https://open.spotify.com",
+          "url": "https://open.spotify.com/intl-pt/",
           "favicon": "https://open.spotify.com/favicon.ico"
         },
         {
-          "name": "Twitch",
-          "url": "https://twitch.tv",
-          "favicon": "https://static.twitchsvc.net/assets/uploads/glitch_474x356.png"
+          "name": "AnimesOnline",
+          "url": "https://animesonline.cloud/",
+          "favicon": "https://animesonline.cloud/favicon.ico"
+        },
+        {
+          "name": "DoramasOnline",
+          "url": "https://doramasonline.org/",
+          "favicon": "https://doramasonline.org/favicon.ico"
+        },
+        {
+          "name": "AniTube",
+          "url": "https://www.anitube.zip/",
+          "favicon": "https://www.anitube.zip/favicon.ico"
         }
       ]
-    },
-    {
-      "name": "Social",
-      "sites": [
-        {
-          "name": "Twitter/X",
-          "url": "https://x.com",
-          "favicon": "https://abs.twimg.com/favicons/twitter.3.ico"
-        },
-        {
-          "name": "Reddit",
-          "url": "https://reddit.com",
-          "favicon": "https://www.reddit.com/favicon.ico"
-        },
-        {
-          "name": "Instagram",
-          "url": "https://instagram.com",
-          "favicon": "https://www.instagram.com/favicon.ico"
-        },
-        {
-          "name": "LinkedIn",
-          "url": "https://linkedin.com",
-          "favicon": "https://www.linkedin.com/favicon.ico"
-        }
-      ]
-    },
-    {
-      "name": "Dev",
-      "sites": [
-        {
-          "name": "MDN",
-          "url": "https://developer.mozilla.org",
-          "favicon": "https://developer.mozilla.org/favicon.ico"
-        },
-        {
-          "name": "npm",
-          "url": "https://npmjs.com",
-          "favicon": "https://static-production.npmjs.com/58a19602036db1daee0d7863c94673a4.png"
-        },
-        {
-          "name": "CodePen",
-          "url": "https://codepen.io",
-          "favicon": "https://cpwebassets.codepen.io/assets/favicon/favicon-touch-de50acbf5d634ec6791894eba4ba9cf490f709b3d742597c6fc4b734eba37f8.png"
-        },
-        {
-          "name": "Vercel",
-          "url": "https://vercel.com",
-          "favicon": "https://assets.vercel.com/image/upload/front/favicon/vercel/32x32.png"
-        },
-        {
-          "name": "Replit",
-          "url": "https://replit.com",
-          "favicon": "https://replit.com/public/icons/favicon-196.png"
-        }
-      ]
-    },
-    {
-      "name": "FIlmes",
-      "sites": []
-    },
-    {
-      "name": "Series",
-      "sites": []
-    },
-    {
-      "name": "Animes",
-      "sites": []
-    },
-    {
-      "name": "Musica",
-      "sites": []
-    },
-    {
-      "name": "Programacao",
-      "sites": []
     }
   ],
   "feeds": [
@@ -210,19 +140,23 @@
       "url": "https://tecnoblog.net/feed/"
     },
     {
-      "name": "Tecmundo",
-      "url": "https://www.tecmundo.com.br/tags/rss"
-    },
-    {
       "name": "AkitaOnRails",
       "url": "https://akitaonrails.com/index.xml"
+    },
+    {
+      "name": "MacMagazine",
+      "url": "https://macmagazine.com.br/feed"
+    },
+    {
+      "name": "SpaceToday",
+      "url": "https://spacetoday.com.br/feed/"
     }
   ],
   "activeEngine": 0,
-  "activeCat": 0,
+  "activeCat": 1,
   "activeFeed": -1,
   "newsFilterScope": "title",
-  "newsMaxAll": 5,
+  "newsMaxAll": 10,
   "newsFiltersNeg": [
     "libertadores",
     "futebol",
