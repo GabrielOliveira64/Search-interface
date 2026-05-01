@@ -1,5 +1,5 @@
 {
-  "name": "portal",
+  "name": "Home",
   "version": "0.4.0",
   "description": "Página inicial personalizada com RSS, atalhos e busca",
   "main": "main.js",
@@ -16,8 +16,8 @@
     "electron-builder": "^24.0.0"
   },
   "build": {
-    "appId": "com.portal.app",
-    "productName": "Portal",
+    "appId": "com.home.app",
+    "productName": "Home",
     "copyright": "Copyright © 2025",
     "asar": true,
     "files": [
@@ -27,7 +27,9 @@
       "index.html",
       "app.js",
       "style.css",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "icon.png",
+      "icon.ico"
     ],
     "extraResources": [
       {
