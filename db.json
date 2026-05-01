@@ -29,11 +29,6 @@
       "name": "Dev",
       "sites": [
         {
-          "name": "Github",
-          "url": "https://github.com/",
-          "favicon": "https://github.com/favicon.ico"
-        },
-        {
           "name": "Hugginface",
           "url": "https://huggingface.co/",
           "favicon": "https://huggingface.co/favicon.ico"
@@ -42,36 +37,21 @@
           "name": "StackOverflow",
           "url": "https://stackoverflow.com/questions",
           "favicon": "https://stackoverflow.com/favicon.ico"
-        }
-      ]
-    },
-    {
-      "name": "IA",
-      "sites": [
-        {
-          "name": "Claude",
-          "url": "https://claude.ai/",
-          "favicon": "https://claude.ai/favicon.ico"
         },
         {
-          "name": "Chatgpt",
-          "url": "https://chatgpt.com/",
-          "favicon": "https://chatgpt.com/favicon.ico"
+          "name": "GoogleDrive",
+          "url": "https://drive.google.com/drive/my-drive?hl=pt-br",
+          "favicon": "https://drive.google.com/favicon.ico"
         },
         {
-          "name": "MiMo",
-          "url": "https://aistudio.xiaomimimo.com/",
-          "favicon": "https://aistudio.xiaomimimo.com/favicon.ico"
+          "name": "Gmail",
+          "url": "https://mail.google.com/mail/",
+          "favicon": "https://mail.google.com/favicon.ico"
         },
         {
-          "name": "Gemini",
-          "url": "https://gemini.google.com/app",
-          "favicon": "https://gemini.google.com/favicon.ico"
-        },
-        {
-          "name": "Liss",
-          "url": "https://localhost:5000/",
-          "favicon": "https://localhost/favicon.ico"
+          "name": "Github",
+          "url": "https://github.com/",
+          "favicon": "https://github.com/favicon.ico"
         }
       ]
     },
@@ -124,6 +104,51 @@
           "favicon": "https://www.anitube.zip/favicon.ico"
         }
       ]
+    },
+    {
+      "name": "Foruns",
+      "sites": [
+        {
+          "name": "Reddit",
+          "url": "https://www.reddit.com/",
+          "favicon": "https://www.reddit.com/favicon.ico"
+        },
+        {
+          "name": "Tabnews",
+          "url": "https://www.tabnews.com.br/",
+          "favicon": "https://www.tabnews.com.br/favicon.ico"
+        }
+      ]
+    },
+    {
+      "name": "IA",
+      "sites": [
+        {
+          "name": "Claude",
+          "url": "https://claude.ai/",
+          "favicon": "https://claude.ai/favicon.ico"
+        },
+        {
+          "name": "Chatgpt",
+          "url": "https://chatgpt.com/",
+          "favicon": "https://chatgpt.com/favicon.ico"
+        },
+        {
+          "name": "MiMo",
+          "url": "https://aistudio.xiaomimimo.com/",
+          "favicon": "https://aistudio.xiaomimimo.com/favicon.ico"
+        },
+        {
+          "name": "Gemini",
+          "url": "https://gemini.google.com/app",
+          "favicon": "https://gemini.google.com/favicon.ico"
+        },
+        {
+          "name": "Liss",
+          "url": "https://localhost:5000/",
+          "favicon": "https://localhost/favicon.ico"
+        }
+      ]
     }
   ],
   "feeds": [
@@ -144,16 +169,16 @@
       "url": "https://akitaonrails.com/index.xml"
     },
     {
-      "name": "MacMagazine",
-      "url": "https://macmagazine.com.br/feed"
-    },
-    {
       "name": "SpaceToday",
       "url": "https://spacetoday.com.br/feed/"
+    },
+    {
+      "name": "Tabnews",
+      "url": "https://www.tabnews.com.br/recentes/rss"
     }
   ],
   "activeEngine": 0,
-  "activeCat": 1,
+  "activeCat": 0,
   "activeFeed": -1,
   "newsFilterScope": "title",
   "newsMaxAll": 10,
@@ -161,7 +186,10 @@
     "libertadores",
     "futebol",
     "policia",
-    "íntegra"
+    "íntegra",
+    "dia das mães"
   ],
-  "newsFilterScopeNeg": "both"
+  "newsFilterScopeNeg": "both",
+  "showNewsImages": true,
+  "linkTarget": "self"
 }

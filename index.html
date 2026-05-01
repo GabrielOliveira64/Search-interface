@@ -3,17 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home</title>
+<title>Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="icon" type="image/x-icon" href="logo.ico">
 </head>
 <body>
 
 <div class="wrapper">
   <div class="topbar">
-    <div class="logo">Home</div>
+    <div class="logo">Portal</div>
     <button class="settings-btn" onclick="openSettings()" title="Configurações">⚙️</button>
   </div>
 
@@ -103,10 +102,31 @@
           <button class="btn-add" onclick="addCategory()">+ Add</button>
         </div>
       </div>
+
+      <div class="settings-group">
+        <div class="settings-group-label">Abrir links</div>
+        <div class="settings-hint">Como abrir buscas, sites e notícias ao clicar.</div>
+        <div class="scope-selector">
+          <button class="link-target-opt scope-opt" data-target="blank" onclick="setLinkTarget('blank')">Nova aba</button>
+          <button class="link-target-opt scope-opt" data-target="self"  onclick="setLinkTarget('self')">Mesma aba</button>
+        </div>
+      </div>
     </div>
 
     <!-- ABA: NOTÍCIAS -->
     <div class="stab-content" id="tab-noticias">
+
+
+      <div class="settings-group">
+        <div class="settings-group-label">Imagens das matérias</div>
+        <div class="toggle-row-inline">
+          <span class="settings-hint" style="margin:0">Mostrar thumbnail da matéria</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggleShowImages" onchange="toggleShowImages(this.checked)">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
 
       <div class="settings-group">
         <div class="settings-group-label">Feeds RSS</div>

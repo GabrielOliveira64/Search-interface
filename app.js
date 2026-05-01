@@ -7,13 +7,15 @@ async function loadConfig() {
   try {
     const res = await fetch('/api/config');
     cfg = await res.json();
-    if (cfg.newsMaxPerFeed   === undefined) cfg.newsMaxPerFeed   = 5;
-    if (cfg.newsMaxAll       === undefined) cfg.newsMaxAll       = 10;
-    if (!cfg.newsFilters)     cfg.newsFilters     = [];
-    if (!cfg.newsFiltersNeg)  cfg.newsFiltersNeg  = [];
+    if (cfg.newsMaxPerFeed      === undefined) cfg.newsMaxPerFeed      = 5;
+    if (cfg.newsMaxAll          === undefined) cfg.newsMaxAll          = 10;
+    if (!cfg.newsFilters)        cfg.newsFilters        = [];
+    if (!cfg.newsFiltersNeg)     cfg.newsFiltersNeg     = [];
     if (!cfg.newsFilterScope)    cfg.newsFilterScope    = 'title';
     if (!cfg.newsFilterScopeNeg) cfg.newsFilterScopeNeg = 'title';
-    if (cfg.activeFeed === undefined) cfg.activeFeed = -1;
+    if (cfg.activeFeed          === undefined) cfg.activeFeed          = -1;
+    if (cfg.showNewsImages      === undefined) cfg.showNewsImages      = true;
+    if (!cfg.linkTarget)         cfg.linkTarget         = 'blank'; // 'blank' | 'self'
   } catch {
     showToast('❌ Não foi possível conectar ao servidor. Rode: node server.js');
   }
@@ -58,13 +60,15 @@ function importDB() {
         if (!imported.feeds || !imported.categories || !imported.engines)
           throw new Error('Arquivo inválido');
         cfg = imported;
-        if (cfg.newsMaxPerFeed   === undefined) cfg.newsMaxPerFeed   = 5;
-        if (cfg.newsMaxAll       === undefined) cfg.newsMaxAll       = 10;
-        if (!cfg.newsFilters)     cfg.newsFilters     = [];
-        if (!cfg.newsFiltersNeg)  cfg.newsFiltersNeg  = [];
+        if (cfg.newsMaxPerFeed      === undefined) cfg.newsMaxPerFeed      = 5;
+        if (cfg.newsMaxAll          === undefined) cfg.newsMaxAll          = 10;
+        if (!cfg.newsFilters)        cfg.newsFilters        = [];
+        if (!cfg.newsFiltersNeg)     cfg.newsFiltersNeg     = [];
         if (!cfg.newsFilterScope)    cfg.newsFilterScope    = 'title';
         if (!cfg.newsFilterScopeNeg) cfg.newsFilterScopeNeg = 'title';
-        if (cfg.activeFeed === undefined) cfg.activeFeed = -1;
+        if (cfg.activeFeed          === undefined) cfg.activeFeed          = -1;
+        if (cfg.showNewsImages      === undefined) cfg.showNewsImages      = true;
+        if (!cfg.linkTarget)         cfg.linkTarget         = 'blank';
         await saveConfig();
         renderSettingsModal();
         renderEngines();
@@ -130,6 +134,13 @@ function updateClock() {
 }
 
 // ═══════════════════════════════════════
+// LINK TARGET HELPER
+// ═══════════════════════════════════════
+function linkTarget() {
+  return cfg.linkTarget === 'self' ? '_self' : '_blank';
+}
+
+// ═══════════════════════════════════════
 // SEARCH
 // ═══════════════════════════════════════
 function renderEngines() {
@@ -141,30 +152,106 @@ function selectEngine(i) { cfg.activeEngine = i; renderEngines(); }
 function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
-  window.open(cfg.engines[cfg.activeEngine].url + encodeURIComponent(q), '_blank');
+  window.open(cfg.engines[cfg.activeEngine].url + encodeURIComponent(q), linkTarget());
 }
 
 // ═══════════════════════════════════════
-// CATEGORIES
+// CATEGORIES — com drag & drop
 // ═══════════════════════════════════════
+let dragSrc = null; // { type: 'cat'|'site', ci, si }
+
 function renderCategories() {
   const tabs = document.getElementById('catTabs');
   const grid = document.getElementById('sitesGrid');
+  const target = linkTarget();
+
+  // Tabs de categoria com drag
   tabs.innerHTML = cfg.categories.map((c, i) =>
-    `<button class="cat-tab ${i === cfg.activeCat ? 'active' : ''}" onclick="selectCat(${i})">${escHtml(c.name)}</button>`
+    `<button
+      class="cat-tab ${i === cfg.activeCat ? 'active' : ''}"
+      draggable="true"
+      data-ci="${i}"
+      onclick="selectCat(${i})"
+      ondragstart="onCatDragStart(event,${i})"
+      ondragover="onCatDragOver(event)"
+      ondrop="onCatDrop(event,${i})"
+      ondragend="onDragEnd()"
+    >${escHtml(c.name)}</button>`
   ).join('');
+
   const cat = cfg.categories[cfg.activeCat] || cfg.categories[0];
   if (!cat) { grid.innerHTML = ''; return; }
-  grid.innerHTML = cat.sites.map(s => `
-    <a class="site-card" href="${s.url}" target="_blank">
+
+  // Sites com drag
+  grid.innerHTML = cat.sites.map((s, si) =>
+    `<a class="site-card"
+      href="${s.url}"
+      target="${target}"
+      draggable="true"
+      data-si="${si}"
+      ondragstart="onSiteDragStart(event,${si})"
+      ondragover="onSiteDragOver(event)"
+      ondrop="onSiteDrop(event,${si})"
+      ondragend="onDragEnd()"
+      onclick="handleSiteClick(event,'${escHtml(s.url)}')">
       <img class="site-favicon" src="${s.favicon}"
         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2224%22 font-size=%2224%22>🌐</text></svg>'"
         alt="${escHtml(s.name)}">
       <div class="site-name">${escHtml(s.name)}</div>
-    </a>
-  `).join('');
+    </a>`
+  ).join('');
 }
+
+function handleSiteClick(e, url) {
+  // Não navega se foi um drag
+  if (e.defaultPrevented) return;
+}
+
 function selectCat(i) { cfg.activeCat = i; renderCategories(); }
+
+// Drag categorias
+function onCatDragStart(e, i) {
+  dragSrc = { type: 'cat', i };
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+function onCatDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onCatDrop(e, targetI) {
+  e.preventDefault();
+  if (!dragSrc || dragSrc.type !== 'cat' || dragSrc.i === targetI) return;
+  const cats = cfg.categories;
+  const [moved] = cats.splice(dragSrc.i, 1);
+  cats.splice(targetI, 0, moved);
+  // Mantém seleção na mesma categoria
+  if (cfg.activeCat === dragSrc.i) cfg.activeCat = targetI;
+  else if (cfg.activeCat >= Math.min(dragSrc.i, targetI) && cfg.activeCat <= Math.max(dragSrc.i, targetI)) {
+    cfg.activeCat += dragSrc.i < targetI ? -1 : 1;
+  }
+  dragSrc = null;
+  renderCategories();
+}
+
+// Drag sites
+function onSiteDragStart(e, si) {
+  dragSrc = { type: 'site', si };
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+function onSiteDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onSiteDrop(e, targetSi) {
+  e.preventDefault();
+  if (!dragSrc || dragSrc.type !== 'site' || dragSrc.si === targetSi) return;
+  const cat = cfg.categories[cfg.activeCat];
+  const [moved] = cat.sites.splice(dragSrc.si, 1);
+  cat.sites.splice(targetSi, 0, moved);
+  dragSrc = null;
+  renderCategories();
+  saveConfig(); // persiste ordem
+}
+function onDragEnd() {
+  dragSrc = null;
+  document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+}
 
 // ═══════════════════════════════════════
 // NEWS
@@ -188,7 +275,6 @@ function warmupAllFeeds() {
   cfg.feeds.forEach(f => fetchFeed(f.url).catch(() => {}));
 }
 
-// Aplica filtro positivo (MOSTRA) e negativo (OCULTA)
 function applyFilters(items) {
   const posFilters = (cfg.newsFilters    || []).map(f => f.toLowerCase().trim()).filter(Boolean);
   const negFilters = (cfg.newsFiltersNeg || []).map(f => f.toLowerCase().trim()).filter(Boolean);
@@ -198,26 +284,37 @@ function applyFilters(items) {
   return items.filter(item => {
     const titleLow = item.title.toLowerCase();
     const descLow  = item.desc.toLowerCase();
-
-    const haystackPos = (posScope === 'title') ? titleLow
-      : (posScope === 'description') ? descLow
-      : titleLow + ' ' + descLow;
-
-    const haystackNeg = (negScope === 'title') ? titleLow
-      : (negScope === 'description') ? descLow
-      : titleLow + ' ' + descLow;
-
-    // 1. Filtro negativo: se bater qualquer tag negativa → rejeita imediatamente
+    const haystackPos = posScope === 'title' ? titleLow : posScope === 'description' ? descLow : titleLow + ' ' + descLow;
+    const haystackNeg = negScope === 'title' ? titleLow : negScope === 'description' ? descLow : titleLow + ' ' + descLow;
     if (negFilters.length && negFilters.some(f => haystackNeg.includes(f))) return false;
-
-    // 2. Filtro positivo: se não houver tags positivas → passa; senão precisa bater uma
     if (posFilters.length && !posFilters.some(f => haystackPos.includes(f))) return false;
-
     return true;
   });
 }
 
-// parseXML sem limit — o limite é aplicado depois (no modo Todos após shuffle)
+// Extrai imagem do RSS (media:content, enclosure, og:image no description)
+function extractImage(item) {
+  // media:content
+  const media = item.querySelector('media\\:content, content') ||
+                [...item.querySelectorAll('*')].find(el => el.nodeName.toLowerCase().includes('content') && el.getAttribute('url'));
+  if (media?.getAttribute('url')) return media.getAttribute('url');
+
+  // enclosure
+  const enc = item.querySelector('enclosure');
+  if (enc?.getAttribute('type')?.startsWith('image')) return enc.getAttribute('url');
+
+  // <image> dentro do item
+  const imgEl = item.querySelector('image');
+  if (imgEl?.textContent?.trim().startsWith('http')) return imgEl.textContent.trim();
+
+  // og:image ou src dentro da description (HTML)
+  const descRaw = item.querySelector('description, summary, content')?.textContent || '';
+  const srcMatch = descRaw.match(/src=["']([^"']+\.(jpg|jpeg|png|webp|gif))/i);
+  if (srcMatch) return srcMatch[1];
+
+  return null;
+}
+
 function parseXML(xmlText, feedName) {
   const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
   const rawItems = [...xml.querySelectorAll('item, entry')];
@@ -227,12 +324,12 @@ function parseXML(xmlText, feedName) {
     const link    = linkEl?.getAttribute('href') || linkEl?.textContent?.trim() || '#';
     const desc    = stripHtml(item.querySelector('description, summary, content')?.textContent || '');
     const pubDate = item.querySelector('pubDate, published, updated')?.textContent || '';
-    return { title, link, desc, pubDate, feedName };
+    const image   = extractImage(item);
+    return { title, link, desc, pubDate, feedName, image };
   });
   return applyFilters(items);
 }
 
-// Fisher-Yates shuffle
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -243,10 +340,17 @@ function shuffle(arr) {
 }
 
 function renderNewsCard(item) {
-  const dateStr = item.pubDate ? formatDate(new Date(item.pubDate)) : '';
+  const dateStr    = item.pubDate ? formatDate(new Date(item.pubDate)) : '';
+  const target     = linkTarget();
+  const showImages = cfg.showNewsImages !== false;
+  const imgHtml    = showImages && item.image
+    ? `<img class="news-thumb" src="${escHtml(item.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : '';
+
   return `
-    <a class="news-card" href="${item.link}" target="_blank" rel="noopener">
-      <div>
+    <a class="news-card ${showImages && item.image ? 'has-image' : ''}" href="${item.link}" target="${target}" rel="noopener">
+      ${imgHtml}
+      <div class="news-card-body">
         <div class="news-title">${escHtml(item.title || 'Sem título')}</div>
         ${item.desc ? `<div class="news-desc">${escHtml(item.desc)}</div>` : ''}
         <div class="news-meta">
@@ -307,12 +411,11 @@ async function loadNews() {
     return;
   }
 
-  // ── Todos: coleta todos os feeds em paralelo, shuffle e exibe misturado ──
-  // Pool compartilhado entre feeds já em cache e os que ainda estão carregando
-  const allItemsPool = [];   // itens já disponíveis (do cache)
-  const pendingFeeds = [];   // feeds que ainda precisam ser buscados
+  // ── Todos: shuffle misturado ─────────────────────────────────
+  const allItemsPool = [];
+  const pendingFeeds = [];
 
-  cfg.feeds.forEach((feed) => {
+  cfg.feeds.forEach(feed => {
     const cached = feedCache[feed.url];
     if (cached?.xml && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
       allItemsPool.push(...parseXML(cached.xml, feed.name));
@@ -321,24 +424,20 @@ async function loadNews() {
     }
   });
 
-  // Função que re-renderiza o grid com o pool atual (shuffle + limit)
   function renderPool() {
     const mixed = shuffle(allItemsPool).slice(0, limitAll);
     if (mixed.length === 0 && pendingFeeds.length === 0) {
       grid.innerHTML = '<div class="news-empty">Nenhum resultado para os filtros definidos.</div>';
       return;
     }
-    // Mantém placeholder de loading se ainda tem feeds pendentes
     const loadingPlaceholder = pendingFeeds.length > 0
       ? `<div class="news-loading" style="padding:16px 0"><div class="loader" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div><span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">carregando ${pendingFeeds.length} feed(s)...</span></div>`
       : '';
     grid.innerHTML = mixed.map(renderNewsCard).join('') + loadingPlaceholder;
   }
 
-  // Renderiza imediatamente com o que já está em cache
   renderPool();
 
-  // Busca os pendentes em paralelo — cada um que chega atualiza o pool e re-renderiza
   if (pendingFeeds.length > 0) {
     pendingFeeds.forEach(feed => {
       fetchFeed(feed.url)
@@ -415,6 +514,14 @@ function renderSettingsModal() {
   // Limites
   document.getElementById('newsMaxInput').value    = cfg.newsMaxPerFeed || 5;
   document.getElementById('newsMaxAllInput').value = cfg.newsMaxAll     || 10;
+
+  // Imagens
+  document.getElementById('toggleShowImages').checked = cfg.showNewsImages !== false;
+
+  // Link target
+  const lt = cfg.linkTarget || 'blank';
+  document.querySelectorAll('.link-target-opt').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.target === lt));
 
   // Filtro positivo
   document.getElementById('filterTagsList').innerHTML = (cfg.newsFilters || []).map((f, i) =>
@@ -542,12 +649,25 @@ function setFilterScopeNeg(scope) {
     btn.classList.toggle('active', btn.dataset.scope === scope));
 }
 
+// ── imagens ──
+function toggleShowImages(val) {
+  cfg.showNewsImages = val;
+}
+
+// ── link target ──
+function setLinkTarget(t) {
+  cfg.linkTarget = t;
+  document.querySelectorAll('.link-target-opt').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.target === t));
+}
+
 // ── salvar ──
 async function saveSettings() {
   const maxOne = parseInt(document.getElementById('newsMaxInput').value);
   const maxAll = parseInt(document.getElementById('newsMaxAllInput').value);
   if (!isNaN(maxOne) && maxOne > 0) cfg.newsMaxPerFeed = maxOne;
   if (!isNaN(maxAll) && maxAll > 0) cfg.newsMaxAll     = maxAll;
+  cfg.showNewsImages = document.getElementById('toggleShowImages').checked;
   await saveConfig();
   closeSettings();
   renderEngines();
