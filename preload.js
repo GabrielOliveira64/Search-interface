@@ -12,7 +12,13 @@ contextBridge.exposeInMainWorld('portal', {
   minimizePanel:()       => ipcRenderer.invoke('minimize-panel'),
   closeApp:     ()       => ipcRenderer.invoke('close-app'),
 
-  onStatus: (cb) => ipcRenderer.on('status', (_, data) => cb(data)),
-  onLog:    (cb) => ipcRenderer.on('log',    (_, line) => cb(line)),
-  onTick:   (cb) => ipcRenderer.on('tick',   (_, secs) => cb(secs)),
+  // Update
+  checkUpdate:    () => ipcRenderer.invoke('check-update'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  restartApp:     () => ipcRenderer.invoke('restart-app'),
+
+  onStatus:       (cb) => ipcRenderer.on('status',        (_, d) => cb(d)),
+  onLog:          (cb) => ipcRenderer.on('log',           (_, l) => cb(l)),
+  onTick:         (cb) => ipcRenderer.on('tick',          (_, s) => cb(s)),
+  onUpdateStatus: (cb) => ipcRenderer.on('update-status', (_, d) => cb(d)),
 });

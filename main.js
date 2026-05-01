@@ -298,6 +298,7 @@ function getStatus() {
     cachedFeeds,
     totalFeeds: readDB().feeds?.length || 0,
     autostart: store.get('autostart', false),
+    appVersion: app.getVersion(),
   };
 }
 
@@ -486,6 +487,118 @@ setInterval(() => {
 }, 1000);
 
 // ════════════════════════════════════════════════════════════════
+// SISTEMA DE ATUALIZAÇÃO — GitHub raw
+// Repositório: GabrielOliveira64/Search-interface
+// ════════════════════════════════════════════════════════════════
+const GITHUB_RAW  = 'https://raw.githubusercontent.com/GabrielOliveira64/Search-interface/master';
+const CURRENT_VER = app.getVersion();
+
+// Arquivos que podem ser atualizados (ficam ao lado do .exe em produção)
+const UPDATABLE_FILES = [
+  'index.html',
+  'app.js',
+  'style.css',
+  'panel.html',
+  'preload.js',
+];
+
+function httpsGet(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { headers: { 'User-Agent': 'Portal-Updater/1.0' } }, res => {
+      if ([301,302,303,307,308].includes(res.statusCode) && res.headers.location)
+        return httpsGet(res.headers.location).then(resolve).catch(reject);
+      if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => resolve(data));
+    });
+    req.on('error', reject);
+    req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')); });
+  });
+}
+
+async function checkForUpdates(silent = false) {
+  try {
+    log('[update] Verificando atualizações...');
+    const raw = await httpsGet(`${GITHUB_RAW}/version.json`);
+    const remote = JSON.parse(raw);
+
+    if (!remote.version) throw new Error('version.json inválido');
+
+    const toNum = v => v.split('.').map(Number).reduce((a, n, i) => a + n * Math.pow(1000, 2 - i), 0);
+    const hasUpdate = toNum(remote.version) > toNum(CURRENT_VER);
+
+    if (!hasUpdate) {
+      log(`[update] Já na versão mais recente (${CURRENT_VER}).`);
+      if (!silent && panelWin && !panelWin.isDestroyed())
+        panelWin.webContents.send('update-status', { status: 'up-to-date', current: CURRENT_VER });
+      return;
+    }
+
+    log(`[update] Nova versão disponível: ${remote.version} (atual: ${CURRENT_VER})`);
+    if (panelWin && !panelWin.isDestroyed())
+      panelWin.webContents.send('update-status', {
+        status: 'available',
+        current: CURRENT_VER,
+        remote: remote.version,
+        changelog: remote.changelog || ''
+      });
+
+  } catch (e) {
+    log(`[update] Erro ao verificar: ${e.message}`);
+    if (!silent && panelWin && !panelWin.isDestroyed())
+      panelWin.webContents.send('update-status', { status: 'error', message: e.message });
+  }
+}
+
+async function downloadUpdate() {
+  log('[update] Iniciando download dos arquivos...');
+  if (panelWin && !panelWin.isDestroyed())
+    panelWin.webContents.send('update-status', { status: 'downloading' });
+
+  const errors = [];
+
+  for (const file of UPDATABLE_FILES) {
+    try {
+      log(`[update] Baixando ${file}...`);
+      const content = await httpsGet(`${GITHUB_RAW}/${file}`);
+      const dest = app.isPackaged
+        ? path.join(process.resourcesPath, 'app.asar.unpacked', file)  // se usar asar unpacked
+        : path.join(__dirname, file);
+
+      // Em produção empacotado: salva ao lado do .exe (override da asar)
+      const destProd = path.join(APP_DIR, file);
+      const finalDest = app.isPackaged ? destProd : dest;
+
+      fs.writeFileSync(finalDest, content, 'utf8');
+      log(`[update] ✓ ${file}`);
+    } catch (e) {
+      log(`[update] ✗ ${file}: ${e.message}`);
+      errors.push(file);
+    }
+  }
+
+  if (errors.length === 0) {
+    log('[update] ✅ Todos os arquivos atualizados. Reinicie o app para aplicar.');
+    if (panelWin && !panelWin.isDestroyed())
+      panelWin.webContents.send('update-status', { status: 'done' });
+  } else {
+    log(`[update] ⚠️ Falha em: ${errors.join(', ')}`);
+    if (panelWin && !panelWin.isDestroyed())
+      panelWin.webContents.send('update-status', { status: 'partial', failed: errors });
+  }
+}
+
+// IPC handlers de update
+ipcMain.handle('check-update',    () => checkForUpdates(false));
+ipcMain.handle('download-update', () => downloadUpdate());
+ipcMain.handle('restart-app', () => {
+  app.isQuiting = true;
+  app.relaunch();
+  app.quit();
+});
+
+// ════════════════════════════════════════════════════════════════
 // APP LIFECYCLE
 // ════════════════════════════════════════════════════════════════
 app.whenReady().then(async () => {
@@ -503,6 +616,9 @@ app.whenReady().then(async () => {
 
   // Inicia servidor automaticamente
   await startServer();
+
+  // Verifica atualizações silenciosamente após 5s (sem travar o boot)
+  setTimeout(() => checkForUpdates(true), 5000);
 });
 
 app.on('window-all-closed', e => {

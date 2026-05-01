@@ -1,6 +1,6 @@
 {
   "name": "portal",
-  "version": "1.0.0",
+  "version": "0.4.0",
   "description": "Página inicial personalizada com RSS, atalhos e busca",
   "main": "main.js",
   "scripts": {
@@ -33,13 +33,25 @@
       {
         "from": "db.json",
         "to": "db.json",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
       "target": [
-        { "target": "nsis",     "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "icon.ico",
       "requestedExecutionLevel": "asInvoker"
