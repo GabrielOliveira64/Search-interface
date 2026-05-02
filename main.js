@@ -20,10 +20,10 @@ const store = Store ? new Store() : {
 };
 
 // ── caminhos ────────────────────────────────────────────────────
-// Em produção: arquivos estáticos ficam em resources/app.asar (read-only)
-// db.json e dados mutáveis ficam ao lado do .exe
+// Com asar:false, em produção os arquivos ficam em resources/app/
+// DB e dados mutáveis ficam ao lado do .exe (APP_DIR)
 const APP_DIR    = app.isPackaged ? path.dirname(process.execPath) : __dirname;
-const STATIC_DIR = app.isPackaged ? path.join(process.resourcesPath, 'app.asar') : __dirname;
+const STATIC_DIR = app.isPackaged ? path.join(process.resourcesPath, 'app') : __dirname;
 const DB_FILE = path.join(APP_DIR, 'db.json'); // sempre ao lado do .exe
 
 // ── estado ──────────────────────────────────────────────────────
@@ -414,7 +414,7 @@ function showPanel() {
     icon: path.join(__dirname, 'icon.png'),
   });
 
-  panelWin.loadFile(app.isPackaged ? path.join(process.resourcesPath, 'app.asar', 'panel.html') : path.join(__dirname, 'panel.html'));
+  panelWin.loadFile(path.join(STATIC_DIR, 'panel.html'));
 
   // Envia logs anteriores quando a janela carrega
   panelWin.webContents.on('did-finish-load', () => {
@@ -562,14 +562,10 @@ async function downloadUpdate() {
     try {
       log(`[update] Baixando ${file}...`);
       const content = await httpsGet(`${GITHUB_RAW}/${file}`);
-      const dest = app.isPackaged
-        ? path.join(process.resourcesPath, 'app.asar.unpacked', file)  // se usar asar unpacked
+      // Com asar:false, arquivos ficam em resources/app/ — é lá que sobrescrevemos
+      const finalDest = app.isPackaged
+        ? path.join(process.resourcesPath, 'app', file)
         : path.join(__dirname, file);
-
-      // Em produção empacotado: salva ao lado do .exe (override da asar)
-      const destProd = path.join(APP_DIR, file);
-      const finalDest = app.isPackaged ? destProd : dest;
-
       fs.writeFileSync(finalDest, content, 'utf8');
       log(`[update] ✓ ${file}`);
     } catch (e) {

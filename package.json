@@ -1,6 +1,6 @@
 {
-  "name": "Home",
-  "version": "0.4.0",
+  "name": "home",
+  "version": "0.5",
   "description": "Página inicial personalizada com RSS, atalhos e busca",
   "main": "main.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "appId": "com.home.app",
     "productName": "Home",
     "copyright": "Copyright © 2025",
-    "asar": true,
+    "asar": false,
     "files": [
       "main.js",
       "preload.js",
@@ -27,33 +27,21 @@
       "index.html",
       "app.js",
       "style.css",
-      "node_modules/**/*",
+      "version.json",
+      "node_modules/**/*", 
       "icon.png",
       "icon.ico"
     ],
     "extraResources": [
       {
         "from": "db.json",
-        "to": "db.json",
-        "filter": [
-          "**/*"
-        ]
+        "to": "db.json"
       }
     ],
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
+        { "target": "nsis",     "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
       ],
       "icon": "icon.ico",
       "requestedExecutionLevel": "asInvoker"
@@ -63,7 +51,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Portal",
+      "shortcutName": "Home",
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico",
       "installerHeaderIcon": "icon.ico",
