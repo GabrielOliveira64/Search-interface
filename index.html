@@ -45,10 +45,13 @@
   <div class="news-section">
     <div class="news-header">
       <div class="section-label" style="margin:0">Notícias</div>
-      <div style="display:flex;align-items:center;gap:10px">
+      <div class="news-tabs-wrapper">
         <div class="news-source-tabs" id="newsSourceTabs"></div>
+        <button class="news-overflow-btn" id="overflowBtn" style="display:none" onclick="toggleOverflowMenu()"></button>
         <button class="news-refresh" id="refreshBtn" onclick="forceRefresh()" title="Atualizar">↺</button>
+        <div class="news-overflow-dropdown" id="overflowDropdown" style="display:none"></div>
       </div>
+
     </div>
     <div class="news-grid" id="newsGrid">
       <div class="news-loading"><div class="loader"></div><br>Carregando notícias...</div>

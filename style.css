@@ -292,10 +292,56 @@ body::before {
 
 .news-source-tabs {
   display: flex;
+  flex-wrap: nowrap;
   gap: 8px;
-  flex-wrap: wrap;
+  overflow: hidden; /* esconde o excesso */
+  max-width: 100%;
 }
 
+/* Botão +N */
+.news-overflow-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.news-overflow-btn:hover { border-color: var(--accent); }
+/* Dropdown dos sites escondidos */
+.news-overflow-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.news-overflow-dropdown .news-tab {
+  text-align: left;
+  width: 100%;
+}
+
+/* Wrapper com position relative para o dropdown se posicionar */
+.news-tabs-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .news-tab {
   font-family: 'DM Mono', monospace;
   font-size: 10px;

@@ -363,15 +363,63 @@ function renderNewsCard(item) {
   `;
 }
 
+const MAX_VISIBLE_TABS = 5; // "Todos" conta como 1, então mostra Todos + 4 sites
+
 function renderNewsTabs() {
-  const el = document.getElementById('newsSourceTabs');
+  const tabsEl    = document.getElementById('newsSourceTabs');
+  const overBtn   = document.getElementById('overflowBtn');
+  const overDrop  = document.getElementById('overflowDropdown');
   const allActive = cfg.activeFeed === -1;
-  let html = `<button class="news-tab ${allActive ? 'active' : ''}" onclick="selectFeed(-1)">Todos</button>`;
-  html += cfg.feeds.map((f, i) =>
-    `<button class="news-tab ${i === cfg.activeFeed ? 'active' : ''}" onclick="selectFeed(${i})">${escHtml(f.name)}</button>`
+
+  // Monta lista completa: Todos + feeds
+  const allTabs = [
+    { label: 'Todos', index: -1 },
+    ...cfg.feeds.map((f, i) => ({ label: f.name, index: i }))
+  ];
+
+  const visible = allTabs.slice(0, MAX_VISIBLE_TABS);
+  const hidden  = allTabs.slice(MAX_VISIBLE_TABS);
+
+  // Renderiza tabs visíveis
+  tabsEl.innerHTML = visible.map(t =>
+    `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
+      onclick="selectFeed(${t.index})">${escHtml(t.label)}</button>`
   ).join('');
-  el.innerHTML = html;
+
+  // Botão +N
+  if (hidden.length > 0) {
+    overBtn.style.display = '';
+    overBtn.textContent   = `+${hidden.length}`;
+    // Se o feed ativo está escondido, destaca o botão
+    const activeHidden = hidden.some(t => t.index === cfg.activeFeed);
+    overBtn.style.borderColor = activeHidden ? 'var(--accent2)' : '';
+    overBtn.style.color       = activeHidden ? 'var(--accent2)' : '';
+
+    // Popula dropdown
+    overDrop.innerHTML = hidden.map(t =>
+      `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
+        onclick="selectFeed(${t.index});closeOverflowMenu()">${escHtml(t.label)}</button>`
+    ).join('');
+  } else {
+    overBtn.style.display = 'none';
+    overDrop.style.display = 'none';
+  }
 }
+
+function toggleOverflowMenu() {
+  const drop = document.getElementById('overflowDropdown');
+  const isOpen = drop.style.display !== 'none';
+  drop.style.display = isOpen ? 'none' : 'flex';
+}
+
+function closeOverflowMenu() {
+  document.getElementById('overflowDropdown').style.display = 'none';
+}
+
+// Fecha o dropdown ao clicar fora
+document.addEventListener('click', e => {
+  if (!e.target.closest('.news-tabs-wrapper')) closeOverflowMenu();
+});
 
 function selectFeed(i) { cfg.activeFeed = i; renderNewsTabs(); loadNews(); }
 
