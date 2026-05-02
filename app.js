@@ -145,8 +145,31 @@ function linkTarget() {
 // ═══════════════════════════════════════
 function renderEngines() {
   document.getElementById('engineSelector').innerHTML = cfg.engines.map((e, i) =>
-    `<button class="engine-btn ${i === cfg.activeEngine ? 'active' : ''}" onclick="selectEngine(${i})">${escHtml(e.name)}</button>`
+    `<button class="engine-btn ${i === cfg.activeEngine ? 'active' : ''}"
+      onclick="selectEngine(${i})"
+      ondblclick="editEngine(${i})"
+      title="Duplo clique para editar"
+    >${escHtml(e.name)}</button>`
   ).join('');
+}
+function editEngine(i) {
+  const e = cfg.engines[i];
+  openEditModal(
+    '✏️ Editar motor de busca',
+    e.name,
+    e.url,
+    (name, url) => {
+      cfg.engines[i] = { name, url };
+      saveConfig();
+      renderEngines();
+    },
+    () => {
+      cfg.engines.splice(i, 1);
+      if (cfg.activeEngine >= cfg.engines.length) cfg.activeEngine = 0;
+      saveConfig();
+      renderEngines();
+    }
+  );
 }
 function selectEngine(i) { cfg.activeEngine = i; renderEngines(); }
 function doSearch() {
@@ -193,13 +216,38 @@ function renderCategories() {
       ondragover="onSiteDragOver(event)"
       ondrop="onSiteDrop(event,${si})"
       ondragend="onDragEnd()"
-      onclick="handleSiteClick(event,'${escHtml(s.url)}')">
+      oncontextmenu="editSite(event,${cfg.activeCat},${si})">
       <img class="site-favicon" src="${s.favicon}"
         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2224%22 font-size=%2224%22>🌐</text></svg>'"
         alt="${escHtml(s.name)}">
       <div class="site-name">${escHtml(s.name)}</div>
     </a>`
   ).join('');
+}
+
+function editSite(e, ci, si) {
+  e.preventDefault(); // cancela menu de contexto do browser
+  const s = cfg.categories[ci].sites[si];
+  openEditModal(
+    '✏️ Editar site',
+    s.name,
+    s.url,
+    (name, url) => {
+      const cleanUrl = url.startsWith('http') ? url : 'https://' + url;
+      cfg.categories[ci].sites[si] = {
+        name,
+        url: cleanUrl,
+        favicon: `https://${new URL(cleanUrl).hostname}/favicon.ico`
+      };
+      saveConfig();
+      renderCategories();
+    },
+    () => {
+      cfg.categories[ci].sites.splice(si, 1);
+      saveConfig();
+      renderCategories();
+    }
+  );
 }
 
 function handleSiteClick(e, url) {
@@ -371,7 +419,6 @@ function renderNewsTabs() {
   const overDrop  = document.getElementById('overflowDropdown');
   const allActive = cfg.activeFeed === -1;
 
-  // Monta lista completa: Todos + feeds
   const allTabs = [
     { label: 'Todos', index: -1 },
     ...cfg.feeds.map((f, i) => ({ label: f.name, index: i }))
@@ -380,30 +427,60 @@ function renderNewsTabs() {
   const visible = allTabs.slice(0, MAX_VISIBLE_TABS);
   const hidden  = allTabs.slice(MAX_VISIBLE_TABS);
 
-  // Renderiza tabs visíveis
   tabsEl.innerHTML = visible.map(t =>
-    `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
-      onclick="selectFeed(${t.index})">${escHtml(t.label)}</button>`
+    t.index === -1
+      ? `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
+           onclick="selectFeed(-1)">Todos</button>`
+      : `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
+           onclick="selectFeed(${t.index})"
+           oncontextmenu="editFeed(event,${t.index})"
+           title="Botão direito para editar"
+         >${escHtml(t.label)}</button>`
   ).join('');
 
-  // Botão +N
   if (hidden.length > 0) {
     overBtn.style.display = '';
     overBtn.textContent   = `+${hidden.length}`;
-    // Se o feed ativo está escondido, destaca o botão
     const activeHidden = hidden.some(t => t.index === cfg.activeFeed);
     overBtn.style.borderColor = activeHidden ? 'var(--accent2)' : '';
     overBtn.style.color       = activeHidden ? 'var(--accent2)' : '';
 
-    // Popula dropdown
     overDrop.innerHTML = hidden.map(t =>
-      `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
-        onclick="selectFeed(${t.index});closeOverflowMenu()">${escHtml(t.label)}</button>`
+      t.index === -1
+        ? `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
+             onclick="selectFeed(-1);closeOverflowMenu()">Todos</button>`
+        : `<button class="news-tab ${t.index === cfg.activeFeed ? 'active' : ''}"
+             onclick="selectFeed(${t.index});closeOverflowMenu()"
+             oncontextmenu="editFeed(event,${t.index});closeOverflowMenu()"
+           >${escHtml(t.label)}</button>`
     ).join('');
   } else {
-    overBtn.style.display = 'none';
+    overBtn.style.display  = 'none';
     overDrop.style.display = 'none';
   }
+}
+
+function editFeed(e, i) {
+  e.preventDefault();
+  const f = cfg.feeds[i];
+  openEditModal(
+    '✏️ Editar feed RSS',
+    f.name,
+    f.url,
+    (name, url) => {
+      cfg.feeds[i] = { name, url };
+      saveConfig();
+      renderNewsTabs();
+      if (cfg.activeFeed === i) loadNews();
+    },
+    () => {
+      cfg.feeds.splice(i, 1);
+      if (cfg.activeFeed >= cfg.feeds.length) cfg.activeFeed = -1;
+      saveConfig();
+      renderNewsTabs();
+      loadNews();
+    }
+  );
 }
 
 function toggleOverflowMenu() {
@@ -728,6 +805,46 @@ async function saveSettings() {
 
 document.getElementById('settingsModal').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
+});
+
+// ═══════════════════════════════════════
+// MINI MODAL DE EDIÇÃO
+// ═══════════════════════════════════════
+let editCtx = null; // guarda o contexto do item sendo editado
+
+function openEditModal(title, name, url, onSave, onDelete) {
+  editCtx = { onSave, onDelete };
+  document.getElementById('editModalTitle').textContent = title;
+  document.getElementById('editItemName').value = name;
+  document.getElementById('editItemUrl').value  = url;
+  document.getElementById('editModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  document.body.style.overflow = '';
+  editCtx = null;
+}
+
+function saveEditItem() {
+  if (!editCtx) return;
+  const name = document.getElementById('editItemName').value.trim();
+  const url  = document.getElementById('editItemUrl').value.trim();
+  if (!name || !url) return;
+  editCtx.onSave(name, url);
+  closeEditModal();
+}
+
+function deleteEditItem() {
+  if (!editCtx) return;
+  editCtx.onDelete();
+  closeEditModal();
+}
+
+// Fechar clicando fora
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
 });
 
 // ═══════════════════════════════════════

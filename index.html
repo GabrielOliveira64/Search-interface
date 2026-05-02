@@ -205,7 +205,18 @@
     <button class="btn-save" onclick="saveSettings()">💾 Salvar e fechar</button>
   </div>
 </div>
-
+<!-- EDIT ITEM MODAL -->
+<div class="edit-modal-overlay" id="editModal">
+  <div class="edit-modal">
+    <div class="edit-modal-title" id="editModalTitle">Editar</div>
+    <input class="settings-input" id="editItemName" placeholder="Nome">
+    <input class="settings-input" id="editItemUrl"  placeholder="URL">
+    <div class="edit-modal-actions">
+      <button class="btn-remove" onclick="deleteEditItem()">🗑 Remover</button>
+      <button class="btn-save"   onclick="saveEditItem()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
   "name": "home",
-  "version": "0.5",
+  "version": "0.5.0",
   "description": "Página inicial personalizada com RSS, atalhos e busca",
   "main": "main.js",
   "scripts": {

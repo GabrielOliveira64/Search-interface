@@ -921,3 +921,68 @@ body::before {
   transform: translateX(18px);
   background: #fff;
 }
+/* ── Mini modal de edição de item ── */
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.edit-modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.edit-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: translateY(12px);
+  transition: transform 0.2s;
+}
+.edit-modal-overlay.open .edit-modal {
+  transform: translateY(0);
+}
+.edit-modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.edit-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.edit-modal-actions .btn-save {
+  flex: 1;
+  padding: 10px;
+  font-size: 13px;
+  margin-top: 0;
+}
+.btn-remove {
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid rgba(248,113,113,0.4);
+  color: #f87171;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-remove:hover {
+  background: rgba(248,113,113,0.1);
+}
